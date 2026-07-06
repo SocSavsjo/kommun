@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kommunprofil - livejämförelser</title>
+<style>
+    :root {
+        --primary: #005a9c;
+        --primary-dark: #003f70;
+        --ink: #202124;
+        --muted: #65707a;
+        --line: #d9e2ec;
+        --soft: #f3f6f9;
+        --panel: #fff;
+        --good: #1f7a5a;
+        --bad: #b42318;
+        --amber: #9a6700;
+        --shadow: 0 8px 22px rgba(31, 44, 60, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        background: #eef2f6;
+        color: var(--ink);
+        font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    .shell {
+        max-width: 1780px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    header {
+        background: var(--panel);
+        border-top: 5px solid var(--primary);
+        box-shadow: var(--shadow);
+        padding: 22px 26px;
+    }
+
+    h1 {
+        margin: 0;
+        color: var(--primary-dark);
+        font-size: 2rem;
+        letter-spacing: 0;
+    }
+
+    header p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 1rem;
+    }
+
+    .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: end;
+        margin-top: 18px;
+    }
+
+    .field {
+        display: grid;
+        gap: 6px;
+    }
+
+    label {
+        color: #3f4952;
+        font-weight: 700;
+        font-size: 0.88rem;
+    }
+
+    select, button {
+        font: inherit;
+    }
+
+    select {
+        min-width: 250px;
+        border: 1px solid #c9d4df;
+        border-radius: 6px;
+        background: white;
+        padding: 10px 12px;
+    }
+
+    .status-pill {
+        border: 1px solid #c9d4df;
+        border-radius: 999px;
+        padding: 9px 12px;
+        background: #f7fafc;
+        color: var(--muted);
+        font-size: 0.9rem;
+    }
+
+    .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+        border-bottom: 3px solid var(--primary);
+    }
+
+    .tab-btn {
+        border: 0;
+        border-radius: 6px 6px 0 0;
+        background: #d7d9db;
+        color: #303437;
+        cursor: pointer;
+        font-weight: 800;
+        padding: 13px 16px;
+    }
+
+    .tab-btn.active {
+        background: var(--primary);
+        color: #fff;
+    }
+
+    main {
+        display: grid;
+        gap: 18px;
+        margin-top: 20px;
+    }
+
+    .tab-panel {
+        display: none;
+        gap: 18px;
+    }
+
+    .tab-panel.active {
+        display: grid;
+    }
+
+    .info {
+        background: #e7f1fa;
+        color: #24465f;
+        border-left: 5px solid var(--primary);
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .card, .comparison {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-top: 5px solid var(--primary);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+        min-width: 0;
+    }
+
+    .card h3, .comparison h2 {
+        margin: 0;
+        color: #4d4d4d;
+        font-size: 1rem;
+        line-height: 1.3;
+    }
+
+    .card .value {
+        margin-top: 14px;
+        font-size: 1.8rem;
+        font-weight: 850;
+        overflow-wrap: anywhere;
+    }
+
+    .meta {
+        color: var(--muted);
+        font-size: 0.86rem;
+        margin-top: 5px;
+    }
+
+    .delta.good { color: var(--good); }
+    .delta.bad { color: var(--bad); }
+
+    .compare-line {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .mini {
+        background: var(--soft);
+        border: 1px solid #dde6ef;
+        border-radius: 6px;
+        padding: 9px;
+        min-width: 0;
+    }
+
+    .mini-label {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .mini-value {
+        margin-top: 3px;
+        font-weight: 800;
+    }
+
+    .comparison-head {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(320px, 520px) minmax(220px, 1fr);
+        align-items: end;
+        gap: 18px;
+        margin-bottom: 12px;
+    }
+
+    .comparison-title {
+        color: var(--primary-dark);
+        font-size: 1.25rem;
+        font-weight: 900;
+    }
+
+    .metric-picker {
+        justify-self: center;
+        width: 100%;
+        max-width: 520px;
+    }
+
+    .metric-picker label {
+        color: var(--primary-dark);
+        font-size: 1rem;
+    }
+
+    .metric-picker select {
+        width: 100%;
+        min-width: 0;
+        border: 2px solid #2f3b46;
+        border-radius: 7px;
+        font-weight: 700;
+        padding: 12px 14px;
+    }
+
+    .selected-metric-title {
+        grid-column: 1 / -1;
+        margin-top: 2px;
+        padding: 12px 14px;
+        border-left: 5px solid var(--primary);
+        background: #f4f9fd;
+        color: var(--primary-dark);
+        font-size: 1.28rem;
+        font-weight: 900;
+    }
+
+    .chart-wrap {
+        min-height: 290px;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 290px;
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 8px 0 14px;
+        color: var(--muted);
+        font-size: 0.88rem;
+    }
+
+    .legend span {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .legend i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.94rem;
+    }
+
+    th, td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    th {
+        color: var(--primary-dark);
+        font-weight: 850;
+        background: #f8fafc;
+    }
+
+    .source {
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin: 12px 0 0;
+    }
+
+    .loading {
+        color: var(--muted);
+        padding: 18px;
+    }
+
+    .error {
+        color: var(--bad);
+        font-weight: 700;
+    }
+
+    @media (max-width: 1200px) {
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+        .shell { padding: 10px; }
+        header { padding: 18px; }
+        .kpi-grid { grid-template-columns: 1fr; }
+        .comparison-head { grid-template-columns: 1fr; }
+        .selected-metric-title { grid-column: auto; }
+        .compare-line { grid-template-columns: 1fr; }
+        select { min-width: 100%; width: 100%; }
+        .field { width: 100%; }
+    }
+</style>
+</head>
+<body>
+<div class="shell">
+    <header>
+        <h1>Kommunprofil: <span id="current-name">Sävsjö</span></h1>
+        <p>Livehämtade jämförelser från Kolada. Inga inbäddade statistikvärden används.</p>
+        <div class="topbar">
+            <div class="field">
+                <label for="municipality-select">Huvudkommun</label>
+                <select id="municipality-select"></select>
+            </div>
+            <div class="status-pill" id="load-status">Klar att ladda</div>
+        </div>
+    </header>
+
+    <nav class="tabs" aria-label="Kommunprofil">
+        <button class="tab-btn active" type="button" data-tab="overview">Översikt</button>
+        <button class="tab-btn" type="button" data-tab="population">Befolkning</button>
+        <button class="tab-btn" type="button" data-tab="migration">Migration</button>
+        <button class="tab-btn" type="button" data-tab="crime">Brott</button>
+        <button class="tab-btn" type="button" data-tab="work">Arbete och livsvillkor</button>
+        <button class="tab-btn" type="button" data-tab="income">Inkomst och hushåll</button>
+        <button class="tab-btn" type="button" data-tab="business">Näringsliv och pendling</button>
+        <button class="tab-btn" type="button" data-tab="economy">Ekonomi</button>
+        <button class="tab-btn" type="button" data-tab="school">Skola och kompetens</button>
+        <button class="tab-btn" type="button" data-tab="housing">Bostäder och infrastruktur</button>
+        <button class="tab-btn" type="button" data-tab="democracy">Val och demokrati</button>
+        <button class="tab-btn" type="button" data-tab="climate">Miljö och klimat</button>
+    </nav>
+
+    <main id="main"></main>
+
+    <p class="source">Källa: Kolada API v3. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
+</div>
+
+<script>
+const API_BASE = "https://api.kolada.se/v3";
+const DEFAULT_MUNICIPALITY = "0684";
+let selectedMunicipality = DEFAULT_MUNICIPALITY;
+const loadedTabs = new Set();
+const metricCache = new Map();
+
+const municipalities = [
+    { id: "0604", name: "Aneby" },
+    { id: "0686", name: "Eksjö" },
+    { id: "0682", name: "Nässjö" },
+    { id: "0684", name: "Sävsjö" },
+    { id: "0687", name: "Tranås" },
+    { id: "0685", name: "Vetlanda" },
+    { id: "0617", name: "Gnosjö" },
+    { id: "0642", name: "Mullsjö" },
+    { id: "0643", name: "Habo" },
+    { id: "0662", name: "Gislaved" },
+    { id: "0665", name: "Vaggeryd" },
+    { id: "0680", name: "Jönköping" },
+    { id: "0683", name: "Värnamo" }
+];
+
+const highlandIds = ["0604", "0686", "0682", "0684", "0687", "0685"];
+const countyMunicipalityIds = municipalities.map(item => item.id);
+const countyId = "0006";
+const countryId = "0000";
+
+const colors = {
+    selected: "#005a9c",
+    highland: "#222222",
+    county: "#c04f15",
+    country: "#6b7280",
+    other: "#7a4cb0"
+};
+
+const sections = {
+    overview: {
+        title: "Översikt",
+        note: "Ett första lager med breda kommunmått. Varje kort jämför vald kommun med Höglandet, Jönköpings län och riket.",
+        metrics: [
+            metric("N01951", "Invånare totalt", "Befolkning", "number", "sum"),
+            metric("N02012", "Befolkningsförändring", "Befolkning", "number", "sum"),
+            metric("N02267", "Sysselsättningsgrad 20-64 år", "Arbete", "percent", "avg"),
+            metric("N02280", "Arbetslöshet 20-64 år", "Arbete", "percent", "avg", false),
+            metric("N00905", "Mediannettoinkomst 20+", "Livsvillkor", "currency", "avg"),
+            metric("N66080", "Låg ekonomisk standard", "Livsvillkor", "percent", "avg", false),
+            metric("N03007", "Årets resultat", "Ekonomi", "currency", "avg", true, "/inv"),
+            metric("N03002", "Soliditet inkl. pension", "Ekonomi", "percent", "avg"),
+            metric("N00900", "Skattesats totalt", "Ekonomi", "percent", "avg", false),
+            metric("N00904", "Skattekraft mot riket", "Ekonomi", "percent", "avg")
+        ]
+    },
+    population: {
+        title: "Befolkning",
+        note: "Befolkningsnivå, åldersstruktur och förändring. Höglandet summeras för antal och snittas för andelar/rater.",
+        metrics: [
+            metric("N01951", "Invånare totalt", "Volym", "number", "sum"),
+            metric("N02012", "Befolkningsförändring", "Förändring", "number", "sum"),
+            metric("N01800", "Flyttnetto", "Förändring", "number", "sum"),
+            metric("N01803", "Födelsenetto", "Förändring", "number", "sum"),
+            metric("N01919", "Invånare 0-19 år", "Ålder", "number", "sum"),
+            metric("N01994", "Invånare 0-19 år, andel av totalen", "Ålder", "percent", "avg"),
+            metric("N01955", "Invånare 20-64 år", "Ålder", "number", "sum"),
+            metric("N01961", "Invånare 20-64 år, andel av totalen", "Ålder", "percent", "avg"),
+            metric("N01938", "Invånare 65+", "Ålder", "number", "sum"),
+            metric("N01960", "Invånare 65+, andel av totalen", "Ålder", "percent", "avg"),
+            metric("N01957", "Invånare 80+", "Ålder", "number", "sum"),
+            metric("N01813", "Invånare 80+, andel av totalen", "Ålder", "percent", "avg")
+        ]
+    },
+    migration: {
+        title: "Migration",
+        note: "Migration, flyktingmottagande och etablering. Måtten hämtas direkt från Kolada och jämförs med samtliga kommuner i Jönköpings län.",
+        metrics: [
+            metric("N01807", "Utrikes inflyttade", "Flyttningar", "number", "sum"),
+            metric("N01808", "Utrikes utflyttade", "Flyttningar", "number", "sum", false),
+            metric("N01806", "Utrikes flyttnetto", "Flyttningar", "number", "sum"),
+            metric("N02102", "Utrikes flyttnetto", "Flyttningar", "percent", "avg"),
+            metric("N01986", "Kommunmottagna med uppehållstillstånd", "Flyktingmottagande", "number", "sum"),
+            metric("N02006", "Kommunmottagna med uppehållstillstånd", "Flyktingmottagande", "number", "avg", true, "/1000 inv"),
+            metric("N01987", "Kommunmottagna efter anvisning", "Flyktingmottagande", "number", "sum"),
+            metric("N02268", "Sysselsättningsgrad utrikes födda 20-64 år", "Etablering", "percent", "avg"),
+            metric("N02282", "Arbetslöshet utrikes födda 20-64 år", "Etablering", "percent", "avg", false),
+            metric("N00700", "Förvärvsarbetande skyddsbehövande och anhöriga", "Etablering", "percent", "avg"),
+            metric("N00711", "Förvärvsarbetande eller studerande skyddsbehövande och anhöriga", "Etablering", "percent", "avg"),
+            metric("N00704", "Skyddsbehövande och anhöriga med kort vistelsetid", "Bakgrund", "percent", "avg")
+        ]
+    },
+    crime: {
+        title: "Brott",
+        note: "Anmälda brott, trygghet och oro. Måtten hämtas direkt från Kolada, huvudsakligen som antal per 100 000 invånare eller andel i undersökningar.",
+        metrics: [
+            crimeCountMetric("N07540", "Anmälda brott totalt"),
+            crimeCountMetric("N07403", "Anmälda våldsbrott"),
+            crimeCountMetric("N07536", "Anmälda brott mot frihet och frid"),
+            crimeCountMetric("N07537", "Anmälda sexualbrott"),
+            crimeCountMetric("N07544", "Anmälda narkotikabrott"),
+            crimeCountMetric("N07546", "Anmälda bostadsinbrott"),
+            crimeCountMetric("N07548", "Anmälda trafikbrott"),
+            metric("N00612", "Låg oro för inbrott i hemmet", "Trygghet", "percent", "avg"),
+            metric("N00614", "Låg oro för våldsbrott eller hot", "Trygghet", "percent", "avg"),
+            metric("N00622", "Få problem med våldsbrott i kommunen", "Trygghet", "percent", "avg"),
+            metric("N00623", "Få problem med inbrott eller stölder", "Trygghet", "percent", "avg"),
+            metric("N07611", "Oro över brottsligheten i samhället", "NTU", "percent", "avg", false),
+            metric("N07633", "Självrapporterad utsatthet för brott mot enskild person", "NTU", "percent", "avg", false)
+        ]
+    },
+    work: {
+        title: "Arbete och livsvillkor",
+        note: "Arbetsmarknad, inkomster, ohälsa och företagande.",
+        metrics: [
+            metric("N02267", "Sysselsättningsgrad 20-64 år", "Arbete", "percent", "avg"),
+            metric("N02280", "Arbetslöshet 20-64 år", "Arbete", "percent", "avg", false),
+            metric("N03921", "Arbetslöshet 16-24 år", "Arbete", "percent", "avg", false),
+            metric("N00905", "Mediannettoinkomst 20+", "Inkomst", "currency", "avg"),
+            metric("N66080", "Låg ekonomisk standard", "Inkomst", "percent", "avg", false),
+            metric("N00957", "Ohälsotal", "Hälsa", "number", "avg", false, " dagar"),
+            metric("N00999", "Nystartade företag", "Näringsliv", "number", "avg", true, "/1000 inv"),
+            metric("U07453", "Företagsklimat Insikt", "Näringsliv", "number", "avg")
+        ]
+    },
+    income: {
+        title: "Inkomst och hushåll",
+        note: "Inkomster, ekonomisk utsatthet och hushållsstruktur. Värdena hämtas live från Kolada och jämförs med kommunerna i länet.",
+        metrics: [
+            metric("N00905", "Mediannettoinkomst 20+", "Inkomst", "currency", "avg"),
+            metric("N00906", "Sammanräknad förvärvsinkomst 20-64 år", "Inkomst", "currency", "avg"),
+            metric("N00891", "Sammanräknad förvärvsinkomst 65+", "Inkomst", "currency", "avg"),
+            metric("N00952", "Kvinnors mediannettoinkomst som andel av mäns", "Jämställdhet", "percent", "avg"),
+            metric("N00892", "Kvinnors mediannettoinkomst 65+ som andel av mäns", "Jämställdhet", "percent", "avg"),
+            metric("N00997", "Ginikoefficient hushållens disponibla inkomster", "Inkomstspridning", "number", "avg", false),
+            metric("N00956", "Ginikoefficient förvärvsinkomst", "Inkomstspridning", "number", "avg", false),
+            metric("N66080", "Invånare med låg ekonomisk standard", "Ekonomisk utsatthet", "percent", "avg", false),
+            metric("N66077", "Invånare 0-19 år med låg ekonomisk standard", "Ekonomisk utsatthet", "percent", "avg", false),
+            metric("N01455", "Varaktigt låg inkomststandard 25+", "Ekonomisk utsatthet", "percent", "avg", false),
+            metric("U01803", "Invånare 18-64 år med låg inkomst", "Ekonomisk utsatthet", "percent", "avg", false),
+            metric("N02938", "Hushåll totalt", "Hushåll", "integer", "sum"),
+            metric("N02942", "Ensamstående hushåll", "Hushåll", "percent", "avg"),
+            metric("N02943", "Sammanboende hushåll", "Hushåll", "percent", "avg"),
+            metric("N02944", "Övriga hushåll", "Hushåll", "percent", "avg"),
+            metric("N02850", "Ensamstående äldrehushåll", "Hushåll", "percent", "avg"),
+            metric("U31001", "Utbetalt ekonomiskt bistånd", "Ekonomiskt bistånd", "currency", "avg", false, "/inv"),
+            metric("N31849", "Utbetalt ekonomiskt bistånd per hushåll", "Ekonomiskt bistånd", "currency", "avg", false, "/hushåll"),
+            metric("N31910", "Biståndshushåll", "Ekonomiskt bistånd", "integer", "sum", false)
+        ]
+    },
+    business: {
+        title: "Näringsliv och pendling",
+        note: "Företagande, lokala arbetsplatser och pendling. Alla värden hämtas live från Kolada och jämförs med kommunerna i länet.",
+        metrics: [
+            metric("N01003", "Nystartade företag, antal", "Företagande", "integer", "sum"),
+            metric("N00999", "Nystartade företag per 1 000 invånare", "Företagande", "number", "avg", true, "/1000 inv"),
+            metric("N45700", "Företagsförekomster", "Företagande", "number", "avg", true, "/1000 inv"),
+            metric("N45703", "Företagens omsättning per invånare", "Företagande", "currency", "avg", true, "/inv"),
+            metric("N45704", "Företagens omsättning totalt", "Företagande", "number", "sum", true, " mnkr"),
+            metric("N00926", "Företagskonkurser", "Företagande", "number", "avg", false, "/1000 inv"),
+            metric("N02277", "Inpendling, antal personer", "Pendling", "integer", "sum"),
+            metric("N02276", "Inpendling, andel av dagbefolkning", "Pendling", "percent", "avg"),
+            metric("N02278", "Utpendling, antal personer", "Pendling", "integer", "sum", false),
+            metric("N02279", "Utpendling, andel av nattbefolkning", "Pendling", "percent", "avg", false),
+            metric("N02251", "Egenföretagare bland sysselsatta, bostad", "Arbetsmarknad", "percent", "avg"),
+            metric("N02252", "Egenföretagare bland sysselsatta, arbetsställe", "Arbetsmarknad", "percent", "avg"),
+            metric("U07453", "Företagsklimat Insikt totalt", "Insikt", "number", "avg"),
+            metric("U07459", "Företagsklimat Insikt upphandling", "Insikt", "number", "avg"),
+            metric("U07508", "Företagsklimat Insikt tillgänglighet", "Insikt", "number", "avg"),
+            metric("U07510", "Företagsklimat Insikt bemötande", "Insikt", "number", "avg")
+        ]
+    },
+    economy: {
+        title: "Ekonomi",
+        note: "Kommunal ekonomi och intäktsbas. Mått per invånare och procent snittas för Höglandet.",
+        metrics: [
+            metric("N03007", "Årets resultat", "Resultat", "currency", "avg", true, "/inv"),
+            metric("N03102", "Resultatandel", "Resultat", "percent", "avg"),
+            metric("N03002", "Soliditet inkl. pension", "Ställning", "percent", "avg"),
+            metric("N03106", "Soliditet kommun", "Ställning", "percent", "avg"),
+            metric("N03040", "Skulder totalt", "Ställning", "currency", "avg", false, "/inv"),
+            metric("N03046", "Långfristiga skulder", "Ställning", "currency", "avg", false, "/inv"),
+            metric("N00900", "Skattesats totalt", "Intäktsbas", "percent", "avg", false),
+            metric("N00903", "Skattekraft", "Intäktsbas", "currency", "avg", true, "/inv"),
+            metric("N00904", "Skattekraft mot riket", "Intäktsbas", "percent", "avg"),
+            metric("N03132", "Nettoinvesteringar", "Investeringar", "currency", "avg", true, "/inv")
+        ]
+    },
+    school: {
+        title: "Skola och kompetens",
+        note: "Utbildningsnivå och etablering efter gymnasiet. Behörighetsmått kan läggas till när vi har valt rätt Kolada-definition.",
+        metrics: [
+            metric("N01982", "Eftergymnasial utbildning 25-64 år", "Kompetens", "percent", "avg"),
+            metric("N01968", "Eftergymnasial utbildning 25-44 år", "Kompetens", "percent", "avg"),
+            metric("N01712", "Eftergymnasial utbildning 65+", "Kompetens", "percent", "avg"),
+            metric("N18601", "Etablerade/studerar 2 år efter gymnasieexamen", "Efter gymnasiet", "percent", "avg"),
+            metric("N18602", "Etablerade på arbetsmarknaden 2 år efter gymnasieexamen", "Efter gymnasiet", "percent", "avg"),
+            metric("N18605", "Studerar på högskola 2 år efter gymnasieexamen", "Efter gymnasiet", "percent", "avg")
+        ]
+    },
+    housing: {
+        title: "Bostäder och infrastruktur",
+        note: "Bostadsbestånd, nybyggnation och digital infrastruktur.",
+        metrics: [
+            metric("N07913", "Bostäder totalt", "Bostadsbestånd", "number", "avg", true, "/1000 inv"),
+            metric("N07901", "Hyresrätter", "Bostadsbestånd", "number", "avg", true, "/1000 inv"),
+            metric("N07902", "Bostadsrätter", "Bostadsbestånd", "number", "avg", true, "/1000 inv"),
+            metric("N07903", "Äganderätter", "Bostadsbestånd", "number", "avg", true, "/1000 inv"),
+            metric("N07904", "Bostäder med okänd upplåtelseform", "Bostadsbestånd", "number", "avg", true, "/1000 inv"),
+            metric("N07905", "Färdigställda bostäder i småhus", "Byggande", "number", "avg", true, "/1000 inv"),
+            metric("N07906", "Färdigställda bostäder i flerbostadshus", "Byggande", "number", "avg", true, "/1000 inv"),
+            metric("N07916", "Färdigställda bostäder, ny- och ombyggnad", "Byggande", "number", "avg", true, "/1000 inv"),
+            metric("N07917", "Färdigställda bostäder, nybyggnad", "Byggande", "number", "avg", true, "/1000 inv"),
+            metric("N07923", "Planberedskap för nya bostäder", "Planering", "number", "avg", true, "/1000 inv"),
+            metric("N07924", "Bostäder planlagda senaste två åren", "Planering", "number", "avg", true, "/1000 inv"),
+            metric("N07925", "Bostäder med bygglov senaste två åren", "Planering", "number", "avg", true, "/1000 inv"),
+            metric("N07907", "Trångboddhet i flerbostadshus, norm 2", "Boendesituation", "percent", "avg", false),
+            metric("N07914", "Trångboddhet i flerbostadshus, norm 3", "Boendesituation", "percent", "avg", false),
+            metric("N07900", "Fast bredband minst 100 Mbit/s", "Digital infrastruktur", "percent", "avg"),
+            metric("N07918", "Hushåll med möjlighet till 1 Gbit/s", "Digital infrastruktur", "percent", "avg"),
+            metric("N07919", "1 Gbit/s i tätbebyggt område", "Digital infrastruktur", "percent", "avg"),
+            metric("N07920", "1 Gbit/s i glesbebyggt område", "Digital infrastruktur", "percent", "avg"),
+            metric("N90002", "Bredbandskollen nedströms webb", "Digital infrastruktur", "number", "avg", true, " Mbit/s"),
+            metric("N90004", "Bredbandskollen nedströms mobil", "Digital infrastruktur", "number", "avg", true, " Mbit/s"),
+            metric("N07418", "Befolkning i kollektivtrafiknära läge", "Kollektivtrafik", "percent", "avg"),
+            metric("N07419", "Befolkning inom tätort i kollektivtrafiknära läge", "Kollektivtrafik", "percent", "avg"),
+            metric("N07412", "Befolkning utanför tätort i kollektivtrafiknära läge", "Kollektivtrafik", "percent", "avg"),
+            metric("N00572", "Kollektivtrafik för vardagliga resor är bra", "Kollektivtrafik", "percent", "avg"),
+            metric("N45924", "VA-avgift enligt Nils Holgersson-modellen", "VA och vatten", "currency", "avg", false, "/kvm")
+        ]
+    },
+    democracy: {
+        title: "Val och demokrati",
+        note: "Valdeltagande, representation och medborgarnas upplevelse av inflytande/förtroende. Partifördelning från Valmyndigheten kan läggas till separat om vi vill bygga en särskild partitabell.",
+        metrics: [
+            metric("N05400", "Valdeltagande i minst ett val", "Valdeltagande", "percent", "avg"),
+            metric("N05401", "Valdeltagande kommunval", "Valdeltagande", "percent", "avg"),
+            metric("N05402", "Valdeltagande regionval", "Valdeltagande", "percent", "avg"),
+            metric("N05403", "Valdeltagande riksdagsval", "Valdeltagande", "percent", "avg"),
+            metric("N05404", "Valdeltagande EU-val", "Valdeltagande", "percent", "avg"),
+            metric("N05831", "Lägsta valdeltagande i valdistrikt, kommunval", "Valdeltagande", "percent", "avg"),
+            metric("N05833", "Högsta valdeltagande i valdistrikt, kommunval", "Valdeltagande", "percent", "avg"),
+            metric("N00669", "Insyn och inflytande över kommunens beslut", "Medborgarundersökning", "percent", "avg"),
+            metric("N00664", "Förtroende för kommunens politiker", "Medborgarundersökning", "percent", "avg"),
+            metric("N00665", "Förtroende för riksdagens politiker", "Medborgarundersökning", "percent", "avg"),
+            metric("N05812", "Invånare per förtroendevald kommunpolitiker", "Representation", "number", "avg", false),
+            metric("N05814", "Kvinnor bland förtroendevalda kommunpolitiker", "Representation", "percent", "avg"),
+            metric("N05825", "Utrikes födda bland förtroendevalda kommunpolitiker", "Representation", "percent", "avg"),
+            metric("N05830", "Avhopp från kommunfullmäktige", "Representation", "percent", "avg", false),
+            metric("N07609", "Otrygghet utomhus sen kväll i bostadsområdet", "Trygghet", "percent", "avg", false)
+        ]
+    },
+    climate: {
+        title: "Miljö och klimat",
+        note: "Utsläpp, energi, avfall, skyddad natur och elektrifiering. Värdena hämtas live från Kolada där jämförbara kommunserier finns.",
+        metrics: [
+            metric("N00401", "Växthusgasutsläpp totalt", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85073", "Växthusgasutsläpp transporter", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85078", "Växthusgasutsläpp jordbruk", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85077", "Växthusgasutsläpp industri", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85047", "Kväveoxider totalt", "Utsläpp", "number", "avg", false, " kg/inv"),
+            metric("N85048", "PM2.5-partiklar totalt", "Utsläpp", "number", "avg", false, " kg/inv"),
+            metric("N45905", "Slutanvändning energi totalt", "Energi", "number", "avg", false, " MWh/inv"),
+            metric("N45913", "Slutanvändning energi transporter", "Energi", "number", "avg", false, " MWh/inv"),
+            metric("N45920", "Slutanvändning energi hushåll", "Energi", "number", "avg", false, " MWh/inv"),
+            metric("N45925", "Elproduktion från förnybara energikällor", "Energi", "percent", "avg"),
+            metric("N45930", "Fjärrvärmeproduktion från förnybara energikällor", "Energi", "percent", "avg"),
+            metric("N85054", "Skyddad natur totalt", "Skyddad natur", "percent", "avg"),
+            metric("N85055", "Skyddad natur land", "Skyddad natur", "percent", "avg"),
+            metric("N85084", "Medelavstånd till skyddad natur", "Skyddad natur", "number", "avg", false, " km"),
+            metric("U07801", "Insamlat kommunalt avfall totalt", "Avfall", "number", "avg", false, " kg/inv"),
+            metric("U07414", "Kommunalt avfall till materialåtervinning", "Avfall", "percent", "avg"),
+            metric("U07480", "Matavfall till biologisk återvinning", "Avfall", "percent", "avg"),
+            metric("U07519", "Kommunalt avfall till deponi", "Avfall", "number", "avg", false, " kg/inv"),
+            metric("N00632", "Hämtning av hushållsavfall fungerar bra", "Avfall", "percent", "avg"),
+            metric("N00635", "Återvinna utan bil fungerar bra", "Avfall", "percent", "avg"),
+            metric("N45015", "Nettokostnad avfallshantering", "Avfall", "currency", "avg", false, "/inv"),
+            metric("N07710", "Elbilsladdpunkter normalladdare", "Fordon och laddning", "integer", "sum"),
+            metric("N07711", "Elbilsladdpunkter snabbladdare", "Fordon och laddning", "integer", "sum"),
+            metric("N07940", "Laddhybridbilar", "Fordon och laddning", "number", "avg", true, "/1000 inv"),
+            metric("N00576", "Utbud av laddningsstationer är bra", "Fordon och laddning", "percent", "avg"),
+            metric("U00502", "Fossiloberoende fordon i kommunorganisationen", "Fordon och laddning", "percent", "avg")
+        ]
+    }
+};
+
+function metric(id, title, group, format, aggregate = "avg", higherIsGood = true, suffix = "") {
+    return { id, title, group, format, aggregate, higherIsGood, suffix };
+}
+
+function crimeCountMetric(id, title) {
+    return { ...metric(id, title, "Anmälda brott", "integer", "sum", false), per100kToCount: true };
+}
+
+function currentMunicipality() {
+    return municipalities.find(item => item.id === selectedMunicipality) || municipalities.find(item => item.id === DEFAULT_MUNICIPALITY);
+}
+
+function setup() {
+    const select = document.getElementById("municipality-select");
+    select.innerHTML = municipalities
+        .map(item => `<option value="${item.id}">${item.name}</option>`)
+        .join("");
+    select.value = selectedMunicipality;
+    select.addEventListener("change", () => {
+        selectedMunicipality = select.value;
+        document.getElementById("current-name").textContent = currentMunicipality().name;
+        loadedTabs.clear();
+        metricCache.clear();
+        renderActiveTab();
+    });
+
+    document.querySelectorAll(".tab-btn").forEach(button => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll(".tab-btn").forEach(item => item.classList.toggle("active", item === button));
+            renderActiveTab(button.dataset.tab);
+        });
+    });
+
+    renderActiveTab("overview");
+}
+
+function activeTabId() {
+    return document.querySelector(".tab-btn.active")?.dataset.tab || "overview";
+}
+
+async function renderActiveTab(tabId = activeTabId()) {
+    const section = sections[tabId];
+    const main = document.getElementById("main");
+    setStatus(`Laddar ${section.title.toLowerCase()}...`);
+    main.innerHTML = `
+        <section class="tab-panel active" id="${tabId}">
+            <div class="info">${section.note}</div>
+            <div class="kpi-grid" id="${tabId}-cards">
+                ${section.metrics.map(item => cardSkeleton(item)).join("")}
+            </div>
+            <article class="comparison">
+                <div class="comparison-head">
+                    <div>
+                        <h2 class="comparison-title">Jämförelse</h2>
+                        <div class="meta">Välj nyckeltal för diagram och tabell.</div>
+                    </div>
+                    <div class="field metric-picker">
+                        <label for="${tabId}-metric">Nyckeltal</label>
+                        <select id="${tabId}-metric">
+                            ${section.metrics.map(item => `<option value="${item.id}">${item.group}: ${item.title}</option>`).join("")}
+                        </select>
+                    </div>
+                    <div></div>
+                    <div class="selected-metric-title" id="${tabId}-selected-title">${section.metrics[0].group}: ${section.metrics[0].title}</div>
+                </div>
+                <div class="chart-wrap"><canvas id="${tabId}-chart" width="1100" height="320"></canvas></div>
+                <div class="legend" id="${tabId}-legend"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Område</th>
+                            <th>Senaste värde</th>
+                            <th>Mätår</th>
+                            <th>Förändring från föregående mätår</th>
+                        </tr>
+                    </thead>
+                    <tbody id="${tabId}-table"><tr><td colspan="4">Laddar...</td></tr></tbody>
+                </table>
+            </article>
+        </section>`;
+
+    const select = document.getElementById(`${tabId}-metric`);
+    select.addEventListener("change", () => renderComparison(tabId, section.metrics.find(item => item.id === select.value)));
+
+    try {
+        const rows = await Promise.all(section.metrics.map(loadMetricBundle));
+        rows.forEach(bundle => renderCard(tabId, bundle));
+        await renderComparison(tabId, section.metrics[0]);
+        loadedTabs.add(tabId);
+        setStatus(`Senast laddad: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
+    } catch (error) {
+        console.error(error);
+        setStatus("Kunde inte ladda alla värden");
+    }
+}
+
+function cardSkeleton(item) {
+    return `
+        <article class="card" id="card-${item.id}">
+            <h3>${escapeHtml(item.title)}</h3>
+            <div class="meta">${escapeHtml(item.group)} · ${item.id}</div>
+            <div class="value">Laddar...</div>
+            <div class="meta delta"></div>
+            <div class="compare-line">
+                <div class="mini"><div class="mini-label">Höglandet</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Jönköpings län</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Riket</div><div class="mini-value">-</div></div>
+            </div>
+        </article>`;
+}
+
+async function loadMetricBundle(item) {
+    const cacheKey = `${item.id}:${selectedMunicipality}`;
+    if (metricCache.has(cacheKey)) return metricCache.get(cacheKey);
+
+    const regionIds = [...new Set([selectedMunicipality, ...highlandIds, ...countyMunicipalityIds, countyId, countryId])];
+    const data = await Promise.all(regionIds.map(id => loadRegionMetric(id, item)));
+    const byId = Object.fromEntries(data.map(row => [row.id, row]));
+    const highland = aggregateHighland(item, byId);
+    const county = byId[countyId]?.latest ? byId[countyId] : aggregateGroup("county", countyMunicipalityIds, item, byId);
+    const bundle = { metric: item, byId, highland, county };
+    metricCache.set(cacheKey, bundle);
+    return bundle;
+}
+
+async function loadRegionMetric(regionId, metricDef) {
+    try {
+        let series = await loadRegionSeries(regionId, metricDef.id);
+        if (metricDef.per100kToCount) {
+            const populationSeries = await loadRegionSeries(regionId, "N01951");
+            series = convertPer100kToCount(series, populationSeries);
+        }
+        return { id: regionId, series, latest: series.at(-1) || null, previous: series.at(-2) || null };
+    } catch (error) {
+        return { id: regionId, series: [], latest: null, previous: null, error };
+    }
+}
+
+async function loadRegionSeries(regionId, kpiId) {
+    const response = await fetch(`${API_BASE}/data/municipality/${regionId}/kpi/${kpiId}`);
+    if (!response.ok) throw new Error(`${kpiId} ${regionId}: ${response.status}`);
+    const json = await response.json();
+    return valuesByYear(json.values || []);
+}
+
+function convertPer100kToCount(rateSeries, populationSeries) {
+    return rateSeries
+        .map(point => {
+            const population = populationSeries.find(item => item.period === point.period)?.value;
+            if (!Number.isFinite(population)) return null;
+            return { period: point.period, value: Math.round((point.value * population) / 100000) };
+        })
+        .filter(Boolean);
+}
+
+function valuesByYear(rows) {
+    return rows
+        .map(row => {
+            const value = (row.values || []).find(item => item.gender === "T") || (row.values || [])[0];
+            const numeric = Number(value?.value);
+            return Number.isFinite(numeric) ? { period: Number(row.period), value: numeric, status: value.status || "" } : null;
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.period - b.period);
+}
+
+function aggregateHighland(metricDef, byId) {
+    return aggregateGroup("highland", highlandIds, metricDef, byId);
+}
+
+function aggregateGroup(id, regionIds, metricDef, byId) {
+    const allYears = [...new Set(regionIds.flatMap(regionId => byId[regionId]?.series.map(point => point.period) || []))].sort((a, b) => a - b);
+    const series = allYears.map(period => {
+        const values = regionIds
+            .map(id => byId[id]?.series.find(point => point.period === period)?.value)
+            .filter(Number.isFinite);
+        if (!values.length) return null;
+        const value = metricDef.aggregate === "sum"
+            ? values.reduce((sum, item) => sum + item, 0)
+            : values.reduce((sum, item) => sum + item, 0) / values.length;
+        return { period, value };
+    }).filter(Boolean);
+    return { id, series, latest: series.at(-1) || null, previous: series.at(-2) || null };
+}
+
+function renderCard(tabId, bundle) {
+    const card = document.querySelector(`#${tabId} #card-${bundle.metric.id}`);
+    if (!card) return;
+    const selected = bundle.byId[selectedMunicipality];
+    const country = bundle.byId[countryId];
+
+    if (!selected?.latest) {
+        card.querySelector(".value").textContent = "Ingen data";
+        card.querySelector(".delta").textContent = "Kolada saknar värde för vald kommun.";
+        card.querySelector(".delta").className = "meta delta bad";
+        return;
+    }
+
+    card.querySelector(".value").textContent = formatValue(selected.latest.value, bundle.metric);
+    const delta = selected.previous ? selected.latest.value - selected.previous.value : null;
+    const deltaEl = card.querySelector(".delta");
+    deltaEl.textContent = delta === null
+        ? `Mätår: ${selected.latest.period}`
+        : `${formatDelta(delta, bundle.metric)} från ${selected.previous.period} · mätår ${selected.latest.period}`;
+    deltaEl.className = `meta delta ${tone(delta, bundle.metric)}`;
+
+    const minis = card.querySelectorAll(".mini-value");
+    minis[0].textContent = formatMaybe(bundle.highland.latest?.value, bundle.metric);
+    minis[1].textContent = formatMaybe(bundle.county.latest?.value, bundle.metric);
+    minis[2].textContent = formatMaybe(country?.latest?.value, bundle.metric);
+}
+
+async function renderComparison(tabId, metricDef) {
+    const selectedTitle = document.getElementById(`${tabId}-selected-title`);
+    if (selectedTitle) selectedTitle.textContent = `${metricDef.group}: ${metricDef.title}`;
+    const bundle = await loadMetricBundle(metricDef);
+    const rows = comparisonRows(bundle);
+    drawBarChart(document.getElementById(`${tabId}-chart`), rows, metricDef);
+    document.getElementById(`${tabId}-legend`).innerHTML = rows
+        .map(row => `<span><i style="background:${row.color}"></i>${escapeHtml(row.title)}</span>`)
+        .join("");
+    document.getElementById(`${tabId}-table`).innerHTML = rows.map(row => {
+        const delta = row.previous && row.latest ? row.latest.value - row.previous.value : null;
+        return `
+            <tr>
+                <td>${escapeHtml(row.title)}</td>
+                <td>${formatMaybe(row.latest?.value, metricDef)}</td>
+                <td>${row.latest?.period || "-"}</td>
+                <td class="${tone(delta, metricDef)}">${delta === null ? "-" : `${formatDelta(delta, metricDef)} från ${row.previous.period}`}</td>
+            </tr>`;
+    }).join("");
+}
+
+function comparisonRows(bundle) {
+    const selected = currentMunicipality();
+    const countyMunicipalities = countyMunicipalityIds
+        .filter(id => id !== selectedMunicipality)
+        .map(id => {
+            const municipality = municipalities.find(item => item.id === id);
+            return rowFor(municipality.name, id, bundle.byId[id], colors.other);
+        });
+
+    return [
+        rowFor(selected.name, selected.id, bundle.byId[selected.id], colors.selected),
+        ...countyMunicipalities,
+        rowFor("Höglandet", "highland", bundle.highland, colors.highland),
+        rowFor("Jönköpings län", "county", bundle.county, colors.county),
+        rowFor("Riket", countryId, bundle.byId[countryId], colors.country)
+    ];
+}
+
+function rowFor(title, id, data, color) {
+    return { title, id, color, latest: data?.latest || null, previous: data?.previous || null };
+}
+
+function drawBarChart(canvas, rows, metricDef) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    const width = Math.max(720, Math.round(rect.width || 1100));
+    const height = Math.max(320, Math.round(rect.height || 320));
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    const values = rows.map(row => row.latest?.value).filter(Number.isFinite);
+    if (!values.length) {
+        ctx.fillStyle = "#65707a";
+        ctx.font = "15px Segoe UI, Arial";
+        ctx.fillText("Ingen data att visa", 20, 36);
+        return;
+    }
+
+    const padding = 52;
+    const bottom = 78;
+    const right = 22;
+    const chartWidth = width - padding - right;
+    const chartHeight = height - padding - bottom;
+    const minValue = Math.min(0, ...values);
+    const maxValue = Math.max(...values);
+    const ticks = ticksFor(minValue, maxValue, metricDef.format);
+    const yMin = ticks[0];
+    const yMax = ticks.at(-1);
+    const span = yMax - yMin || 1;
+    const yFor = value => padding + chartHeight - ((value - yMin) / span) * chartHeight;
+
+    ctx.font = "12px Segoe UI, Arial";
+    ctx.textBaseline = "middle";
+    ticks.forEach(tick => {
+        const y = yFor(tick);
+        ctx.strokeStyle = "#e4e8ed";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + chartWidth, y);
+        ctx.stroke();
+        ctx.fillStyle = "#65707a";
+        ctx.textAlign = "right";
+        ctx.fillText(formatAxis(tick, metricDef.format), padding - 8, y);
+    });
+
+    const slot = chartWidth / rows.length;
+    const barWidth = Math.max(24, Math.min(68, slot - 18));
+    rows.forEach((row, index) => {
+        if (!row.latest) return;
+        const x = padding + slot * index + (slot - barWidth) / 2;
+        const y0 = yFor(0);
+        const y = yFor(row.latest.value);
+        const top = Math.min(y, y0);
+        const barHeight = Math.max(2, Math.abs(y0 - y));
+        ctx.fillStyle = row.color;
+        ctx.fillRect(x, top, barWidth, barHeight);
+        ctx.fillStyle = "#333";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(formatValue(row.latest.value, metricDef), x + barWidth / 2, top - 6);
+        ctx.save();
+        ctx.translate(x + barWidth / 2, padding + chartHeight + 16);
+        ctx.rotate(-Math.PI / 5);
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#555";
+        ctx.fillText(row.title, 0, 0);
+        ctx.restore();
+    });
+
+    ctx.strokeStyle = "#d5d5d5";
+    ctx.beginPath();
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, padding + chartHeight);
+    ctx.lineTo(padding + chartWidth, padding + chartHeight);
+    ctx.stroke();
+}
+
+function ticksFor(minValue, maxValue, format) {
+    if (format === "percent") {
+        const start = Math.floor(minValue / 10) * 10;
+        const end = Math.ceil(maxValue / 10) * 10 || 10;
+        const ticks = [];
+        for (let value = start; value <= end; value += 10) ticks.push(value);
+        return ticks.length > 1 ? ticks : [0, 10];
+    }
+    const range = maxValue - minValue || Math.max(Math.abs(maxValue), 1);
+    const step = niceNumber(range / 5);
+    const start = Math.floor(minValue / step) * step;
+    const end = Math.ceil(maxValue / step) * step;
+    const ticks = [];
+    for (let value = start; value <= end + step * 0.5; value += step) ticks.push(Number(value.toFixed(8)));
+    return ticks.length > 1 ? ticks : [start, start + step];
+}
+
+function niceNumber(value) {
+    const exponent = Math.floor(Math.log10(Math.max(Math.abs(value), 1)));
+    const fraction = value / Math.pow(10, exponent);
+    let nice = 1;
+    if (fraction <= 1) nice = 1;
+    else if (fraction <= 2) nice = 2;
+    else if (fraction <= 5) nice = 5;
+    else nice = 10;
+    return nice * Math.pow(10, exponent);
+}
+
+function formatMaybe(value, metricDef) {
+    return Number.isFinite(value) ? formatValue(value, metricDef) : "-";
+}
+
+function formatValue(value, metricDef) {
+    if (metricDef.format === "currency") return `${Math.round(value).toLocaleString("sv-SE")} kr${metricDef.suffix || ""}`;
+    if (metricDef.format === "integer") return `${Math.round(value).toLocaleString("sv-SE")}${metricDef.suffix || ""}`;
+    if (metricDef.format === "percent") return `${value.toLocaleString("sv-SE", { maximumFractionDigits: 1 })}%${metricDef.suffix || ""}`;
+    return `${value.toLocaleString("sv-SE", { maximumFractionDigits: 1 })}${metricDef.suffix || ""}`;
+}
+
+function formatAxis(value, format) {
+    if (format === "currency") return `${Math.round(value).toLocaleString("sv-SE")} kr`;
+    if (format === "integer") return Math.round(value).toLocaleString("sv-SE");
+    if (format === "percent") return `${value.toLocaleString("sv-SE", { maximumFractionDigits: 0 })}%`;
+    return value.toLocaleString("sv-SE", { maximumFractionDigits: 0 });
+}
+
+function formatDelta(value, metricDef) {
+    const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+    const absolute = Math.abs(value);
+    if (metricDef.format === "percent") return `${sign}${absolute.toLocaleString("sv-SE", { maximumFractionDigits: 1 })} procentenheter`;
+    if (metricDef.format === "currency") return `${sign}${Math.round(absolute).toLocaleString("sv-SE")} kr${metricDef.suffix || ""}`;
+    if (metricDef.format === "integer") return `${sign}${Math.round(absolute).toLocaleString("sv-SE")}${metricDef.suffix || ""}`;
+    return `${sign}${absolute.toLocaleString("sv-SE", { maximumFractionDigits: 1 })}${metricDef.suffix || ""}`;
+}
+
+function tone(delta, metricDef) {
+    if (!Number.isFinite(delta) || delta === 0) return "";
+    const good = metricDef.higherIsGood ? delta > 0 : delta < 0;
+    return good ? "good" : "bad";
+}
+
+function setStatus(text) {
+    document.getElementById("load-status").textContent = text;
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+window.addEventListener("resize", () => {
+    const tabId = activeTabId();
+    const metricId = document.getElementById(`${tabId}-metric`)?.value;
+    const metricDef = sections[tabId]?.metrics.find(item => item.id === metricId);
+    if (metricDef) renderComparison(tabId, metricDef);
+});
+
+setup();
+</script>
+</body>
+</html>
