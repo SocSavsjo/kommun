@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kommunprofil - livejämförelser</title>
+<title>Dashboard Jönköpings län - livejämförelser</title>
 <style>
     :root {
         --primary: #005a9c;
@@ -39,6 +39,7 @@
         border-top: 5px solid var(--primary);
         box-shadow: var(--shadow);
         padding: 22px 26px;
+        text-align: center;
     }
 
     h1 {
@@ -54,11 +55,19 @@
         font-size: 1rem;
     }
 
+    .selected-municipality {
+        margin-top: 14px;
+        color: var(--primary-dark);
+        font-size: 1.25rem;
+        font-weight: 900;
+    }
+
     .topbar {
         display: flex;
         flex-wrap: wrap;
         gap: 14px;
         align-items: end;
+        justify-content: center;
         margin-top: 18px;
     }
 
@@ -336,8 +345,9 @@
 <body>
 <div class="shell">
     <header>
-        <h1>Kommunprofil: <span id="current-name">Sävsjö</span></h1>
-        <p>Livehämtade jämförelser från Kolada. Inga inbäddade statistikvärden används.</p>
+        <h1>Dashboard Jönköpings län</h1>
+        <p>Livehämtade nyckeltal för länets kommuner med jämförelser mot Höglandet, Jönköpings län och riket.</p>
+        <div class="selected-municipality">Vald huvudkommun: <span id="current-name">Sävsjö</span></div>
         <div class="topbar">
             <div class="field">
                 <label for="municipality-select">Huvudkommun</label>
