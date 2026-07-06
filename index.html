@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Jönköpings län - livejämförelser</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
     :root {
         --primary: #005a9c;
@@ -326,6 +328,259 @@
         font-weight: 700;
     }
 
+    .bath-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .bath-map {
+        height: 520px;
+        min-height: 520px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #eef8fb;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .bath-map-host {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .bath-map .leaflet-container {
+        height: 100%;
+        width: 100%;
+        font-family: inherit;
+        background: #eef8fb;
+        overflow: hidden;
+        position: relative;
+        outline: 0;
+    }
+
+    .leaflet-pane,
+    .leaflet-tile,
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow,
+    .leaflet-tile-container,
+    .leaflet-pane > svg,
+    .leaflet-pane > canvas,
+    .leaflet-zoom-box,
+    .leaflet-image-layer,
+    .leaflet-layer {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .leaflet-container {
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .leaflet-container img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+
+    .leaflet-tile {
+        filter: inherit;
+        visibility: hidden;
+        border: 0;
+        user-select: none;
+    }
+
+    .leaflet-tile-loaded {
+        visibility: inherit;
+    }
+
+    .leaflet-map-pane {
+        z-index: 400;
+    }
+
+    .leaflet-tile-pane {
+        z-index: 200;
+    }
+
+    .leaflet-overlay-pane {
+        z-index: 400;
+    }
+
+    .leaflet-shadow-pane {
+        z-index: 500;
+    }
+
+    .leaflet-marker-pane {
+        z-index: 600;
+    }
+
+    .leaflet-tooltip-pane {
+        z-index: 650;
+    }
+
+    .leaflet-popup-pane {
+        z-index: 700;
+    }
+
+    .leaflet-control {
+        position: relative;
+        z-index: 800;
+        pointer-events: auto;
+    }
+
+    .leaflet-top,
+    .leaflet-bottom {
+        position: absolute;
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    .leaflet-top {
+        top: 0;
+    }
+
+    .leaflet-right {
+        right: 0;
+    }
+
+    .leaflet-bottom {
+        bottom: 0;
+    }
+
+    .leaflet-left {
+        left: 0;
+    }
+
+    .leaflet-control-zoom {
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 10px;
+        background: #fff;
+    }
+
+    .leaflet-control-zoom a {
+        display: block;
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        text-align: center;
+        text-decoration: none;
+        color: #111;
+        font-weight: 800;
+        background: #fff;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .leaflet-control-zoom a:last-child {
+        border-bottom: 0;
+    }
+
+    .leaflet-popup {
+        position: absolute;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .leaflet-popup-content-wrapper {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        padding: 1px;
+        text-align: left;
+    }
+
+    .leaflet-popup-content {
+        margin: 12px 14px;
+        line-height: 1.35;
+    }
+
+    .leaflet-popup-tip-container {
+        width: 40px;
+        height: 20px;
+        position: absolute;
+        left: 50%;
+        margin-left: -20px;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .leaflet-popup-tip {
+        width: 14px;
+        height: 14px;
+        padding: 1px;
+        margin: -8px auto 0;
+        background: #fff;
+        transform: rotate(45deg);
+        box-shadow: var(--shadow);
+    }
+
+    .bath-map .leaflet-tile,
+    .bath-map .leaflet-marker-icon,
+    .bath-map .leaflet-marker-shadow {
+        max-width: none !important;
+        max-height: none !important;
+    }
+
+    .bath-point {
+        cursor: pointer;
+        transition: r 0.15s ease, opacity 0.15s ease;
+    }
+
+    .bath-point:hover,
+    .bath-point.active {
+        r: 8;
+        opacity: 1;
+    }
+
+    .bath-tooltip {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        max-width: calc(100% - 32px);
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        box-shadow: var(--shadow);
+        font-size: 0.9rem;
+    }
+
+    .bath-side {
+        display: grid;
+        gap: 14px;
+    }
+
+    .bath-filter {
+        display: flex;
+        gap: 12px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+    .bath-list {
+        max-height: 520px;
+        overflow: auto;
+    }
+
+    .status-dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        margin-right: 7px;
+        background: #2f855a;
+        vertical-align: middle;
+    }
+
+    .status-dot.warning { background: var(--bad); }
+    .status-dot.neutral { background: var(--muted); }
+
     @media (max-width: 1200px) {
         .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -337,6 +592,8 @@
         .comparison-head { grid-template-columns: 1fr; }
         .selected-metric-title { grid-column: auto; }
         .compare-line { grid-template-columns: 1fr; }
+        .bath-layout { grid-template-columns: 1fr; }
+        .bath-map, .bath-map-host { min-height: 420px; height: 420px; }
         select { min-width: 100%; width: 100%; }
         .field { width: 100%; }
     }
@@ -370,19 +627,26 @@
         <button class="tab-btn" type="button" data-tab="housing">Bostäder och infrastruktur</button>
         <button class="tab-btn" type="button" data-tab="democracy">Val och demokrati</button>
         <button class="tab-btn" type="button" data-tab="climate">Miljö och klimat</button>
+        <button class="tab-btn" type="button" data-tab="bathing">Badvatten</button>
     </nav>
 
     <main id="main"></main>
 
-    <p class="source">Källa: Kolada API v3. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
+    <p class="source">Källa: Kolada API v3 samt Havs- och vattenmyndighetens API för badplatser och badvatten. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
 </div>
 
 <script>
 const API_BASE = "https://api.kolada.se/v3";
+const HAV_API_BASE = "https://gw.havochvatten.se/external-public/bathing-waters/v2";
 const DEFAULT_MUNICIPALITY = "0684";
 let selectedMunicipality = DEFAULT_MUNICIPALITY;
 const loadedTabs = new Set();
 const metricCache = new Map();
+let bathingWaterCache = null;
+let bathingForecastCache = null;
+let bathLeafletMap = null;
+let bathLeafletMarkers = new Map();
+let bathResizeObserver = null;
 
 const municipalities = [
     { id: "0604", name: "Aneby" },
@@ -701,6 +965,11 @@ function activeTabId() {
 }
 
 async function renderActiveTab(tabId = activeTabId()) {
+    if (tabId === "bathing") {
+        await renderBathingWaterTab();
+        return;
+    }
+
     const section = sections[tabId];
     const main = document.getElementById("main");
     setStatus(`Laddar ${section.title.toLowerCase()}...`);
@@ -754,6 +1023,306 @@ async function renderActiveTab(tabId = activeTabId()) {
         console.error(error);
         setStatus("Kunde inte ladda alla värden");
     }
+}
+
+async function renderBathingWaterTab() {
+    const main = document.getElementById("main");
+    setStatus("Laddar badvatten...");
+    main.innerHTML = `
+        <section class="tab-panel active" id="bathing">
+            <div class="info">Badplatser och badvatten hämtas live från Havs- och vattenmyndigheten och filtreras på Höglandets kommuner.</div>
+            <div class="bath-filter">
+                <div class="field">
+                    <label for="bath-municipality">Visa</label>
+                    <select id="bath-municipality">
+                        <option value="highland">Hela Höglandet</option>
+                        ${highlandIds.map(id => {
+                            const item = municipalities.find(municipality => municipality.id === id);
+                            return `<option value="${id}">${item.name}</option>`;
+                        }).join("")}
+                    </select>
+                </div>
+            </div>
+            <div class="kpi-grid" id="bath-cards">
+                ${["Badplatser", "Kommuner", "EU-bad", "Pågående avrådan"].map(title => `
+                    <article class="card">
+                        <h3>${title}</h3>
+                        <div class="value">Laddar...</div>
+                        <div class="meta">HaV badplatser och badvatten</div>
+                    </article>
+                `).join("")}
+            </div>
+            <div class="bath-layout">
+                <article class="bath-map" id="bath-map">
+                    <div class="loading">Laddar karta...</div>
+                </article>
+                <article class="comparison bath-side">
+                    <div>
+                        <h2 class="comparison-title">Badplatser</h2>
+                        <div class="meta" id="bath-list-note">Laddar...</div>
+                    </div>
+                    <div class="bath-list">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Badplats</th>
+                                    <th>Kommun</th>
+                                    <th>Typ</th>
+                                    <th>Badtemp</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bath-table"><tr><td colspan="4">Laddar...</td></tr></tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+        </section>`;
+
+    const select = document.getElementById("bath-municipality");
+    select.value = highlandIds.includes(selectedMunicipality) ? selectedMunicipality : "highland";
+    select.addEventListener("change", () => renderBathingWaterContent(select.value));
+
+    try {
+        await renderBathingWaterContent(select.value);
+        setStatus(`Badvatten laddat: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
+    } catch (error) {
+        console.error(error);
+        document.getElementById("bath-map").innerHTML = `<div class="loading error">Kunde inte ladda badvatten från HaV.</div>`;
+        document.getElementById("bath-table").innerHTML = `<tr><td colspan="4" class="error">Kunde inte ladda badvatten från HaV.</td></tr>`;
+        setStatus("Kunde inte ladda badvatten");
+    }
+}
+
+async function renderBathingWaterContent(filterId) {
+    const [allItems, forecastMap] = await Promise.all([loadBathingWaters(), loadBathingForecasts()]);
+    const highlandItems = allItems.filter(item => highlandIds.includes(item.municipalityId));
+    const visibleItems = filterId === "highland"
+        ? highlandItems
+        : highlandItems.filter(item => item.municipalityId === filterId);
+    const visibleWithForecasts = visibleItems.map(item => ({
+        ...item,
+        forecast: pickBathForecast(forecastMap.get(item.id))
+    }));
+
+    renderBathingCards(visibleWithForecasts, filterId);
+    renderBathingMap(visibleWithForecasts);
+    renderBathingTable(visibleWithForecasts);
+}
+
+async function loadBathingWaters() {
+    if (bathingWaterCache) return bathingWaterCache;
+    const response = await fetch(`${HAV_API_BASE}/bathing-waters`);
+    if (!response.ok) throw new Error(`HaV badvatten svarade ${response.status}`);
+    const data = await response.json();
+    bathingWaterCache = (data.watersAndAdvisories || [])
+        .map(normalizeBathingWater)
+        .filter(item => item && Number.isFinite(item.lat) && Number.isFinite(item.lon));
+    return bathingWaterCache;
+}
+
+async function loadBathingForecasts() {
+    if (bathingForecastCache) return bathingForecastCache;
+    try {
+        const response = await fetch(`${HAV_API_BASE}/forecasts`);
+        if (!response.ok) throw new Error(`HaV badtemp svarade ${response.status}`);
+        const data = await response.json();
+        bathingForecastCache = new Map((data.forecasts || []).map(item => [item.bathingWaterId, item.waterForecasts || []]));
+    } catch (error) {
+        console.warn("Kunde inte ladda badtemperatur från HaV", error);
+        bathingForecastCache = new Map();
+    }
+    return bathingForecastCache;
+}
+
+function pickBathForecast(forecasts) {
+    if (!forecasts || !forecasts.length) return null;
+    const currentHour = new Date().getHours();
+    return [...forecasts]
+        .map(item => ({ ...item, hour: Number(item.measHour) }))
+        .filter(item => Number.isFinite(item.hour))
+        .sort((a, b) => Math.abs(a.hour - currentHour) - Math.abs(b.hour - currentHour))[0] || forecasts[0];
+}
+
+function normalizeBathingWater(item) {
+    const water = item.bathingWater || {};
+    const municipality = water.municipality || {};
+    const position = water.samplingPointPosition || {};
+    const municipalityId = String(municipality.id || "").padStart(4, "0");
+    const lat = Number(position.latitude);
+    const lon = Number(position.longitude);
+    if (!water.id || !municipalityId) return null;
+    return {
+        id: water.id,
+        name: water.name || "Namnlös badplats",
+        municipalityId,
+        municipalityName: municipality.name || municipalityId,
+        waterType: water.waterTypeIdText || "-",
+        euType: Boolean(water.euType),
+        lat,
+        lon,
+        advice: item.adviceAgainstBathing || [],
+        abnormalSituations: item.abnormalSituations || []
+    };
+}
+
+function renderBathingCards(items, filterId) {
+    const cards = document.querySelectorAll("#bath-cards .card");
+    const municipalityCount = new Set(items.map(item => item.municipalityId)).size;
+    const euCount = items.filter(item => item.euType).length;
+    const adviceCount = items.filter(item => item.advice.length > 0).length;
+    const forecastCount = items.filter(item => item.forecast).length;
+    const values = [
+        items.length.toLocaleString("sv-SE"),
+        municipalityCount.toLocaleString("sv-SE"),
+        forecastCount.toLocaleString("sv-SE"),
+        adviceCount.toLocaleString("sv-SE")
+    ];
+    const notes = [
+        filterId === "highland" ? "Registrerade badplatser i Höglandet" : "Registrerade badplatser i vald kommun",
+        "Kommuner med minst en registrerad badplats",
+        `Med badtemperaturprognos från HaV. EU-bad i urvalet: ${euCount.toLocaleString("sv-SE")}`,
+        "Badplatser med aktiv avrådan i API:t"
+    ];
+    cards.forEach((card, index) => {
+        card.querySelector(".value").textContent = values[index];
+        card.querySelector(".meta").textContent = notes[index];
+    });
+}
+
+function renderBathingMap(items) {
+    const map = document.getElementById("bath-map");
+    if (bathResizeObserver) {
+        bathResizeObserver.disconnect();
+        bathResizeObserver = null;
+    }
+
+    if (bathLeafletMap) {
+        bathLeafletMap.remove();
+        bathLeafletMap = null;
+        bathLeafletMarkers = new Map();
+    }
+
+    if (!items.length) {
+        map.innerHTML = `<div class="loading">Inga registrerade badplatser hittades för urvalet.</div>`;
+        return;
+    }
+
+    if (typeof L === "undefined") {
+        map.innerHTML = `<div class="loading error">Kartan kunde inte laddas. Kontrollera internetanslutningen.</div>`;
+        return;
+    }
+
+    map.innerHTML = `<div class="bath-map-host" id="bath-leaflet-map"></div>`;
+    const mapHost = document.getElementById("bath-leaflet-map");
+    bathLeafletMap = L.map(mapHost, {
+        scrollWheelZoom: true,
+        zoomControl: true,
+        preferCanvas: true
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        minZoom: 3,
+        detectRetina: true,
+        attribution: "&copy; OpenStreetMap"
+    }).addTo(bathLeafletMap);
+
+    const bounds = L.latLngBounds([]);
+    items.forEach(item => {
+        const marker = L.circleMarker([item.lat, item.lon], {
+            radius: item.advice.length ? 8 : 6,
+            color: "#ffffff",
+            weight: 2,
+            fillColor: bathPointColor(item),
+            fillOpacity: 0.92
+        }).addTo(bathLeafletMap);
+
+        marker.bindPopup(bathPopupHtml(item));
+        marker.on("click", () => showBathingDetails(item.id, items));
+        bathLeafletMarkers.set(item.id, marker);
+        bounds.extend([item.lat, item.lon]);
+    });
+
+    fitBathingMapToBounds(bounds);
+
+    bathResizeObserver = new ResizeObserver(() => {
+        bathLeafletMap?.invalidateSize({ pan: false });
+    });
+    bathResizeObserver.observe(mapHost);
+}
+
+function fitBathingMapToBounds(bounds) {
+    const fit = () => {
+        if (!bathLeafletMap) return;
+        bathLeafletMap.invalidateSize({ pan: false });
+        if (!bounds.isValid()) return;
+        if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+            bathLeafletMap.setView(bounds.getCenter(), 13);
+        } else {
+            bathLeafletMap.fitBounds(bounds, {
+                padding: [42, 42],
+                maxZoom: 13
+            });
+        }
+    };
+
+    window.requestAnimationFrame(fit);
+    window.setTimeout(fit, 120);
+    window.setTimeout(fit, 450);
+}
+
+function renderBathingTable(items) {
+    const sorted = [...items].sort((a, b) => a.municipalityName.localeCompare(b.municipalityName, "sv-SE") || a.name.localeCompare(b.name, "sv-SE"));
+    document.getElementById("bath-list-note").textContent = `${sorted.length.toLocaleString("sv-SE")} badplatser i aktuellt urval.`;
+    document.getElementById("bath-table").innerHTML = sorted.length
+        ? sorted.map(item => `
+            <tr data-bath-id="${escapeHtml(item.id)}">
+                <td><strong>${escapeHtml(item.name)}</strong><div class="meta">${item.euType ? "EU-bad" : "Övrigt registrerat bad"}</div></td>
+                <td>${escapeHtml(item.municipalityName)}</td>
+                <td>${escapeHtml(item.waterType)}</td>
+                <td>${escapeHtml(formatBathTemperature(item.forecast))}</td>
+                <td><span class="status-dot ${item.advice.length ? "warning" : ""}"></span>${item.advice.length ? "Avrådan" : "Ingen avrådan"}</td>
+            </tr>
+        `).join("")
+        : `<tr><td colspan="5">Inga badplatser i urvalet.</td></tr>`;
+
+    document.querySelectorAll("#bath-table [data-bath-id]").forEach(row => {
+        row.addEventListener("click", () => showBathingDetails(row.dataset.bathId, items, true));
+    });
+}
+
+function bathPointColor(item) {
+    if (item.advice.length) return "#b42318";
+    if (item.euType) return "#005a9c";
+    return "#2f855a";
+}
+
+function bathPopupHtml(item) {
+    const advice = item.advice[0];
+    return `
+        <strong>${escapeHtml(item.name)}</strong><br>
+        ${escapeHtml(item.municipalityName)} · ${escapeHtml(item.waterType)} · ${item.euType ? "EU-bad" : "Övrigt bad"}<br>
+        Badtemp: ${escapeHtml(formatBathTemperature(item.forecast))}<br>
+        ${advice ? `<span class="error">Avrådan: ${escapeHtml(advice.typeIdText || advice.description || "Ja")}</span>` : "Ingen pågående avrådan i API:t"}<br>
+        <span class="meta">Lat ${item.lat.toFixed(5)}, lon ${item.lon.toFixed(5)}</span>
+    `;
+}
+
+function formatBathTemperature(forecast) {
+    if (!forecast || forecast.waterTemp === undefined || forecast.waterTemp === null || forecast.waterTemp === "") return "Saknas";
+    const temp = Number(String(forecast.waterTemp).replace(",", "."));
+    const value = Number.isFinite(temp) ? `${temp.toLocaleString("sv-SE", { maximumFractionDigits: 1 })} °C` : `${forecast.waterTemp} °C`;
+    return forecast.measHour ? `${value} kl ${forecast.measHour}` : value;
+}
+
+function showBathingDetails(id, items, openPopup = false) {
+    const item = items.find(candidate => candidate.id === id);
+    if (!item) return;
+    const marker = bathLeafletMarkers.get(id);
+    if (!marker || !bathLeafletMap) return;
+    bathLeafletMap.panTo([item.lat, item.lon]);
+    if (openPopup) marker.openPopup();
 }
 
 function cardSkeleton(item) {
@@ -1072,6 +1641,10 @@ function escapeHtml(value) {
 
 window.addEventListener("resize", () => {
     const tabId = activeTabId();
+    if (tabId === "bathing") {
+        bathLeafletMap?.invalidateSize();
+        return;
+    }
     const metricId = document.getElementById(`${tabId}-metric`)?.value;
     const metricDef = sections[tabId]?.metrics.find(item => item.id === metricId);
     if (metricDef) renderComparison(tabId, metricDef);
