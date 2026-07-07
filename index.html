@@ -105,6 +105,21 @@
         font-size: 0.9rem;
     }
 
+    .export-button {
+        border: 0;
+        border-radius: 6px;
+        background: var(--primary);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 850;
+        padding: 10px 14px;
+    }
+
+    .export-button:hover,
+    .export-button:focus {
+        background: var(--primary-dark);
+    }
+
     .tabs {
         display: flex;
         flex-wrap: wrap;
@@ -362,6 +377,146 @@
         z-index: 1;
     }
 
+    .commute-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .commute-map {
+        height: 460px;
+        min-height: 460px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #eef8fb;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .commute-map-host {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .commute-map .leaflet-container {
+        height: 100%;
+        width: 100%;
+        font-family: inherit;
+        background: #eef8fb;
+    }
+
+    .commute-summary {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .commute-summary-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 8px;
+    }
+
+    .commute-summary-label {
+        color: var(--muted);
+        font-size: 0.86rem;
+    }
+
+    .commute-summary-value {
+        font-size: 1.2rem;
+        font-weight: 900;
+        color: var(--primary-dark);
+    }
+
+    .map-toolbar {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.7fr) minmax(280px, 1fr);
+        gap: 14px;
+        align-items: end;
+    }
+
+    .metric-map-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.9fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .metric-map {
+        height: 560px;
+        min-height: 560px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #eef8fb;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow);
+    }
+
+    .metric-map-host {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .metric-map .leaflet-container {
+        height: 100%;
+        width: 100%;
+        font-family: inherit;
+        background: #eef8fb;
+    }
+
+    .map-summary {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .map-summary-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 8px;
+    }
+
+    .map-summary-label {
+        color: var(--muted);
+        font-size: 0.86rem;
+    }
+
+    .map-summary-value {
+        color: var(--primary-dark);
+        font-size: 1.12rem;
+        font-weight: 900;
+        text-align: right;
+    }
+
+    .map-legend-scale {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        margin: 10px 0 14px;
+    }
+
+    .map-gradient {
+        height: 12px;
+        min-width: 120px;
+        flex: 1;
+        border: 1px solid #cbd5df;
+        border-radius: 999px;
+    }
+
     .bath-map .leaflet-container {
         height: 100%;
         width: 100%;
@@ -601,10 +756,64 @@
         .comparison-head { grid-template-columns: 1fr; }
         .selected-metric-title { grid-column: auto; }
         .compare-line { grid-template-columns: 1fr; }
-        .bath-layout { grid-template-columns: 1fr; }
-        .bath-map, .bath-map-host { min-height: 420px; height: 420px; }
+        .bath-layout, .commute-layout, .metric-map-layout, .map-toolbar { grid-template-columns: 1fr; }
+        .bath-map, .bath-map-host, .commute-map, .commute-map-host, .metric-map, .metric-map-host { min-height: 420px; height: 420px; }
         select { min-width: 100%; width: 100%; }
         .field { width: 100%; }
+    }
+
+    @media print {
+        @page { margin: 12mm; }
+
+        body {
+            background: #fff;
+        }
+
+        .shell {
+            max-width: none;
+            padding: 0;
+        }
+
+        header,
+        .card,
+        .comparison,
+        .metric-map {
+            box-shadow: none;
+        }
+
+        .topbar,
+        .tabs,
+        .export-button,
+        .leaflet-control-container {
+            display: none !important;
+        }
+
+        header {
+            text-align: left;
+            padding: 12px 0 16px;
+            border-top: 0;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        main {
+            margin-top: 12px;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card,
+        .comparison,
+        .metric-map,
+        .chart-wrap,
+        table {
+            break-inside: avoid;
+        }
     }
 </style>
 </head>
@@ -620,6 +829,7 @@
                 <select id="municipality-select"></select>
             </div>
             <div class="status-pill" id="load-status">Klar att ladda</div>
+            <button class="export-button" type="button" id="export-report">Exportera PDF</button>
         </div>
     </header>
 
@@ -637,6 +847,7 @@
         <button class="tab-btn" type="button" data-tab="democracy">Val och demokrati</button>
         <button class="tab-btn" type="button" data-tab="climate">Miljö och klimat</button>
         <button class="tab-btn" type="button" data-tab="bathing">Badvatten</button>
+        <button class="tab-btn" type="button" data-tab="map">Karta</button>
     </nav>
 
     <main id="main"></main>
@@ -656,6 +867,12 @@ let bathingForecastCache = null;
 let bathLeafletMap = null;
 let bathLeafletMarkers = new Map();
 let bathResizeObserver = null;
+let commuteLeafletMap = null;
+let commuteResizeObserver = null;
+let metricLeafletMap = null;
+let metricResizeObserver = null;
+let mapSectionId = "population";
+let mapMetricId = "N01951";
 
 const municipalities = [
     { id: "0604", name: "Aneby" },
@@ -678,6 +895,22 @@ const countyMunicipalityIds = municipalities.map(item => item.id);
 const countyId = "0006";
 const countryId = "0000";
 const NATIONAL_POPULATION_MAY_2026 = 10608128;
+
+const municipalityCoordinates = {
+    "0604": [57.837, 14.812],
+    "0617": [57.358, 13.737],
+    "0642": [57.916, 13.879],
+    "0643": [57.911, 14.074],
+    "0662": [57.304, 13.540],
+    "0665": [57.499, 14.145],
+    "0680": [57.782, 14.161],
+    "0682": [57.654, 14.696],
+    "0683": [57.186, 14.040],
+    "0684": [57.404, 14.662],
+    "0685": [57.427, 15.085],
+    "0686": [57.667, 14.972],
+    "0687": [58.038, 14.978]
+};
 
 const colors = {
     selected: "#005a9c",
@@ -960,6 +1193,8 @@ function setup() {
         renderActiveTab();
     });
 
+    document.getElementById("export-report")?.addEventListener("click", exportCurrentView);
+
     document.querySelectorAll(".tab-btn").forEach(button => {
         button.addEventListener("click", () => {
             document.querySelectorAll(".tab-btn").forEach(item => item.classList.toggle("active", item === button));
@@ -979,6 +1214,10 @@ async function renderActiveTab(tabId = activeTabId()) {
         await renderBathingWaterTab();
         return;
     }
+    if (tabId === "map") {
+        await renderMetricMapTab();
+        return;
+    }
 
     const section = sections[tabId];
     const main = document.getElementById("main");
@@ -989,7 +1228,8 @@ async function renderActiveTab(tabId = activeTabId()) {
             <div class="kpi-grid" id="${tabId}-cards">
                 ${section.metrics.map(item => cardSkeleton(item)).join("")}
             </div>
-            ${tabId === "population" ? populationShareSection(tabId) : ""}
+            ${tabId === "population" ? `${dependencyRatioSection(tabId)}${populationShareSection(tabId)}` : ""}
+            ${tabId === "business" ? commutingFlowSection(tabId) : ""}
             <article class="comparison">
                 <div class="comparison-head">
                     <div>
@@ -1027,7 +1267,9 @@ async function renderActiveTab(tabId = activeTabId()) {
     try {
         const rows = await Promise.all(section.metrics.map(loadMetricBundle));
         rows.forEach(bundle => renderCard(tabId, bundle));
+        if (tabId === "population") renderDependencyRatio(tabId, rows);
         if (tabId === "population") renderPopulationShares(tabId, rows.find(bundle => bundle.metric.id === "N01951"));
+        if (tabId === "business") renderCommutingFlow(tabId, rows);
         await renderComparison(tabId, section.metrics[0]);
         loadedTabs.add(tabId);
         setStatus(`Senast laddad: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
@@ -1035,6 +1277,352 @@ async function renderActiveTab(tabId = activeTabId()) {
         console.error(error);
         setStatus("Kunde inte ladda alla värden");
     }
+}
+
+async function renderMetricMapTab() {
+    if (!sections[mapSectionId]) mapSectionId = "population";
+    const section = sections[mapSectionId];
+    if (!section.metrics.some(item => item.id === mapMetricId)) mapMetricId = section.metrics[0].id;
+    const metricDef = section.metrics.find(item => item.id === mapMetricId) || section.metrics[0];
+    const main = document.getElementById("main");
+    setStatus("Laddar karta...");
+    main.innerHTML = `
+        <section class="tab-panel active" id="map">
+            <div class="info">Välj tema och nyckeltal för att se hur länets kommuner skiljer sig geografiskt. Kartan är en punktkarta med kommunmarkörer, inte kommungränser.</div>
+            <article class="comparison">
+                <div class="map-toolbar">
+                    <div class="field">
+                        <label for="map-section">Tema</label>
+                        <select id="map-section">
+                            ${Object.entries(sections).map(([id, item]) => `<option value="${id}" ${id === mapSectionId ? "selected" : ""}>${item.title}</option>`).join("")}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="map-metric">Nyckeltal</label>
+                        <select id="map-metric">
+                            ${section.metrics.map(item => `<option value="${item.id}" ${item.id === metricDef.id ? "selected" : ""}>${item.group}: ${item.title}</option>`).join("")}
+                        </select>
+                    </div>
+                </div>
+            </article>
+            <div class="metric-map-layout">
+                <article class="metric-map" id="metric-map">
+                    <div class="loading">Laddar kartdata...</div>
+                </article>
+                <article class="comparison">
+                    <h2 class="comparison-title" id="map-current-title">${metricDef.group}: ${metricDef.title}</h2>
+                    <div class="meta" id="map-period">Laddar...</div>
+                    <div class="map-summary" id="map-summary"></div>
+                    <div class="map-legend-scale">
+                        <span>Lågt</span>
+                        <span class="map-gradient" id="map-gradient"></span>
+                        <span>Högt</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Kommun</th>
+                                <th>Värde</th>
+                                <th>Placering</th>
+                                <th>Mätår</th>
+                            </tr>
+                        </thead>
+                        <tbody id="map-table">
+                            <tr><td colspan="4">Laddar...</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="meta">Placering 1 betyder högst värde i länet, oavsett om ett högt värde är positivt eller negativt.</div>
+                </article>
+            </div>
+        </section>`;
+
+    document.getElementById("map-section").addEventListener("change", event => {
+        mapSectionId = event.target.value;
+        mapMetricId = sections[mapSectionId].metrics[0].id;
+        renderMetricMapTab();
+    });
+    document.getElementById("map-metric").addEventListener("change", event => {
+        mapMetricId = event.target.value;
+        renderMetricMapData();
+    });
+
+    await renderMetricMapData();
+}
+
+async function renderMetricMapData() {
+    const section = sections[mapSectionId] || sections.population;
+    const metricDef = section.metrics.find(item => item.id === mapMetricId) || section.metrics[0];
+    mapMetricId = metricDef.id;
+
+    const titleEl = document.getElementById("map-current-title");
+    const periodEl = document.getElementById("map-period");
+    const summaryEl = document.getElementById("map-summary");
+    const tableEl = document.getElementById("map-table");
+    const gradientEl = document.getElementById("map-gradient");
+    if (titleEl) titleEl.textContent = `${metricDef.group}: ${metricDef.title}`;
+    if (periodEl) periodEl.textContent = "Laddar...";
+    if (summaryEl) summaryEl.innerHTML = `<div class="loading">Laddar nyckeltal...</div>`;
+    if (tableEl) tableEl.innerHTML = `<tr><td colspan="4">Laddar...</td></tr>`;
+    if (gradientEl) gradientEl.style.background = metricMapGradient(metricDef);
+    setStatus(`Laddar karta: ${metricDef.title.toLowerCase()}...`);
+
+    try {
+        const bundle = await loadMetricBundle(metricDef);
+        const rows = countyMunicipalityIds
+            .map(id => {
+                const municipality = municipalities.find(item => item.id === id);
+                return {
+                    id,
+                    title: municipality?.name || id,
+                    coords: municipalityCoordinates[id],
+                    selected: id === selectedMunicipality,
+                    latest: bundle.byId[id]?.latest || null,
+                    previous: bundle.byId[id]?.previous || null
+                };
+            })
+            .filter(row => row.latest && Number.isFinite(row.latest.value));
+
+        if (!rows.length) {
+            renderMetricMap([], metricDef);
+            if (summaryEl) summaryEl.innerHTML = `<div class="meta">Ingen data hittades för nyckeltalet.</div>`;
+            if (tableEl) tableEl.innerHTML = `<tr><td colspan="4">Ingen data</td></tr>`;
+            if (periodEl) periodEl.textContent = "";
+            return;
+        }
+
+        const rankedRows = [...rows].sort((a, b) => b.latest.value - a.latest.value);
+        rankedRows.forEach((row, index) => row.rank = index + 1);
+        rows.forEach(row => row.rank = rankedRows.find(item => item.id === row.id)?.rank || null);
+        const selectedRow = rows.find(row => row.selected);
+        const period = selectedRow?.latest?.period || rows.find(row => row.latest?.period)?.latest?.period || "";
+        if (periodEl) periodEl.textContent = period ? `Mätår: ${period}` : "Senaste tillgängliga mätår";
+
+        if (summaryEl) {
+            const country = bundle.byId[countryId];
+            summaryEl.innerHTML = `
+                <div class="map-summary-row">
+                    <span class="map-summary-label">Vald kommun</span>
+                    <span class="map-summary-value">${escapeHtml(currentMunicipality().name)}</span>
+                </div>
+                <div class="map-summary-row">
+                    <span class="map-summary-label">Värde</span>
+                    <span class="map-summary-value">${formatMaybe(selectedRow?.latest?.value, metricDef)}</span>
+                </div>
+                <div class="map-summary-row">
+                    <span class="map-summary-label">Placering i länet</span>
+                    <span class="map-summary-value">${selectedRow?.rank ? `${selectedRow.rank} av ${rows.length}` : "-"}</span>
+                </div>
+                <div class="map-summary-row">
+                    <span class="map-summary-label">Höglandet</span>
+                    <span class="map-summary-value">${formatMaybe(bundle.highland.latest?.value, metricDef)}</span>
+                </div>
+                <div class="map-summary-row">
+                    <span class="map-summary-label">Jönköpings län</span>
+                    <span class="map-summary-value">${formatMaybe(bundle.county.latest?.value, metricDef)}</span>
+                </div>
+                <div class="map-summary-row">
+                    <span class="map-summary-label">Riket</span>
+                    <span class="map-summary-value">${formatMaybe(country?.latest?.value, metricDef)}</span>
+                </div>`;
+        }
+
+        if (tableEl) {
+            tableEl.innerHTML = rankedRows.map(row => `
+                <tr class="${row.selected ? "selected-row" : ""}">
+                    <td>${escapeHtml(row.title)}</td>
+                    <td>${formatMaybe(row.latest?.value, metricDef)}</td>
+                    <td>${row.rank} av ${rows.length}</td>
+                    <td>${row.latest?.period || "-"}</td>
+                </tr>
+            `).join("");
+        }
+
+        renderMetricMap(rows, metricDef);
+        loadedTabs.add("map");
+        setStatus(`Senast laddad: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
+    } catch (error) {
+        console.error(error);
+        renderMetricMap([], metricDef);
+        if (summaryEl) summaryEl.innerHTML = `<div class="meta error">Kunde inte ladda kartdata.</div>`;
+        if (tableEl) tableEl.innerHTML = `<tr><td colspan="4">Kunde inte ladda data</td></tr>`;
+        setStatus("Kunde inte ladda kartdata");
+    }
+}
+
+function renderMetricMap(rows, metricDef) {
+    const mapEl = document.getElementById("metric-map");
+    if (!mapEl) return;
+    if (metricResizeObserver) {
+        metricResizeObserver.disconnect();
+        metricResizeObserver = null;
+    }
+    if (metricLeafletMap) {
+        metricLeafletMap.remove();
+        metricLeafletMap = null;
+    }
+
+    const mappableRows = rows.filter(row => row.coords && row.latest && Number.isFinite(row.latest.value));
+    if (!mappableRows.length) {
+        mapEl.innerHTML = `<div class="loading">Ingen kartdata att visa.</div>`;
+        return;
+    }
+    if (typeof L === "undefined") {
+        mapEl.innerHTML = `<div class="loading error">Kartan kunde inte laddas.</div>`;
+        return;
+    }
+
+    const values = mappableRows.map(row => row.latest.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    mapEl.innerHTML = `<div class="metric-map-host" id="metric-map-leaflet"></div>`;
+    const mapHost = document.getElementById("metric-map-leaflet");
+    metricLeafletMap = L.map(mapHost, {
+        scrollWheelZoom: true,
+        zoomControl: true,
+        preferCanvas: true
+    });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        minZoom: 3,
+        detectRetina: true,
+        attribution: "&copy; OpenStreetMap"
+    }).addTo(metricLeafletMap);
+
+    const bounds = L.latLngBounds([]);
+    mappableRows.forEach(row => {
+        const ratio = normalizedRatio(row.latest.value, min, max);
+        const radius = row.selected ? 15 : 8 + ratio * 11;
+        const marker = L.circleMarker(row.coords, {
+            radius,
+            color: row.selected ? "#003f70" : "#ffffff",
+            weight: row.selected ? 3 : 2,
+            fillColor: metricMapColor(row.latest.value, min, max, metricDef),
+            fillOpacity: 0.9
+        }).addTo(metricLeafletMap);
+        marker.bindPopup(metricMapPopup(row, metricDef));
+        bounds.extend(row.coords);
+    });
+
+    const fitMap = () => {
+        if (!metricLeafletMap || !bounds.isValid()) return;
+        metricLeafletMap.invalidateSize({ pan: false });
+        metricLeafletMap.fitBounds(bounds, { padding: [42, 42], maxZoom: 10 });
+    };
+    window.requestAnimationFrame(fitMap);
+    window.setTimeout(fitMap, 180);
+    window.setTimeout(fitMap, 520);
+    if (typeof ResizeObserver !== "undefined") {
+        metricResizeObserver = new ResizeObserver(() => metricLeafletMap?.invalidateSize({ pan: false }));
+        metricResizeObserver.observe(mapHost);
+    }
+}
+
+function metricMapPopup(row, metricDef) {
+    return `
+        <strong>${escapeHtml(row.title)}</strong><br>
+        ${escapeHtml(metricDef.title)}: ${formatMaybe(row.latest?.value, metricDef)}<br>
+        Placering: ${row.rank || "-"}<br>
+        Mätår: ${row.latest?.period || "-"}`;
+}
+
+function metricMapGradient(metricDef) {
+    return metricDef.higherIsGood
+        ? "linear-gradient(90deg, #d7edf7, #8fc1df, #005a9c)"
+        : "linear-gradient(90deg, #fdebd3, #f0a45a, #b42318)";
+}
+
+function metricMapColor(value, min, max, metricDef) {
+    const ratio = normalizedRatio(value, min, max);
+    const stops = metricDef.higherIsGood
+        ? [[215, 237, 247], [143, 193, 223], [0, 90, 156]]
+        : [[253, 235, 211], [240, 164, 90], [180, 35, 24]];
+    return rgbToHex(interpolateStops(stops, ratio));
+}
+
+function normalizedRatio(value, min, max) {
+    if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || max === min) return 0.5;
+    return Math.max(0, Math.min(1, (value - min) / (max - min)));
+}
+
+function interpolateStops(stops, ratio) {
+    const scaled = ratio * (stops.length - 1);
+    const index = Math.min(stops.length - 2, Math.floor(scaled));
+    const localRatio = scaled - index;
+    return stops[index].map((channel, channelIndex) => Math.round(channel + (stops[index + 1][channelIndex] - channel) * localRatio));
+}
+
+function rgbToHex(rgb) {
+    return `#${rgb.map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function exportCurrentView() {
+    const activeTab = document.querySelector(".tab-btn.active")?.textContent.trim() || "Kommunprofil";
+    const originalTitle = document.title;
+    document.title = `Kommunprofil ${currentMunicipality().name} - ${activeTab}`;
+    setStatus("Förbereder export...");
+    window.setTimeout(() => {
+        window.print();
+        document.title = originalTitle;
+        setStatus("Export klar att spara via utskriftsdialogen");
+    }, 60);
+}
+
+function commutingFlowSection(tabId) {
+    return `
+        <article class="comparison" id="${tabId}-commuting-flow">
+            <div class="comparison-head">
+                <div>
+                    <h2 class="comparison-title">Pendling som flöde</h2>
+                    <div class="meta" id="${tabId}-commuting-flow-period">Laddar...</div>
+                </div>
+            </div>
+            <div class="commute-layout">
+                <article class="commute-map" id="${tabId}-commute-map">
+                    <div class="loading">Laddar pendlingskarta...</div>
+                </article>
+                <article>
+                    <div class="commute-summary" id="${tabId}-commute-summary"></div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Kommun</th>
+                                <th>In</th>
+                                <th>Ut</th>
+                                <th>Netto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="${tabId}-commute-table">
+                            <tr><td colspan="4">Laddar...</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="meta">Kartan visar pendlingsbalans per kommun utifrån inpendling och utpendling. Exakta flöden mellan två kommuner ingår inte i dessa Kolada-mått.</div>
+                </article>
+            </div>
+        </article>`;
+}
+
+function dependencyRatioSection(tabId) {
+    return `
+        <article class="comparison" id="${tabId}-dependency-ratio">
+            <div>
+                <h2 class="comparison-title">Försörjningskvot</h2>
+                <div class="meta" id="${tabId}-dependency-ratio-period">Laddar...</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Område</th>
+                        <th>Kvot</th>
+                        <th>0-19 + 65+</th>
+                        <th>20-64</th>
+                    </tr>
+                </thead>
+                <tbody id="${tabId}-dependency-ratio-table">
+                    <tr><td colspan="4">Laddar...</td></tr>
+                </tbody>
+            </table>
+            <div class="meta">Antal personer 0-19 år och 65+ per 100 personer i åldern 20-64 år.</div>
+        </article>`;
 }
 
 function populationShareSection(tabId) {
@@ -1060,6 +1648,244 @@ function populationShareSection(tabId) {
             </table>
             <div class="meta">Kommun- och länsbefolkning: SCB via Kolada, KPI N01951. Riket: SCB:s senaste nyckeltal för maj 2026, 10 608 128 invånare.</div>
         </article>`;
+}
+
+function renderDependencyRatio(tabId, bundles) {
+    const tbody = document.getElementById(`${tabId}-dependency-ratio-table`);
+    const periodEl = document.getElementById(`${tabId}-dependency-ratio-period`);
+    if (!tbody) return;
+
+    const youngBundle = bundles.find(bundle => bundle.metric.id === "N01919");
+    const workingBundle = bundles.find(bundle => bundle.metric.id === "N01955");
+    const olderBundle = bundles.find(bundle => bundle.metric.id === "N01938");
+    if (!youngBundle || !workingBundle || !olderBundle) return;
+
+    const number = value => Number.isFinite(value)
+        ? Math.round(value).toLocaleString("sv-SE")
+        : "-";
+    const ratioText = value => Number.isFinite(value)
+        ? `${value.toLocaleString("sv-SE", { maximumFractionDigits: 1 })} per 100`
+        : "-";
+    const rowFor = (title, id, youngPoint, workingPoint, olderPoint, highlight = false, total = false) => {
+        const dependents = (youngPoint?.value || 0) + (olderPoint?.value || 0);
+        const working = workingPoint?.value;
+        const ratio = Number.isFinite(working) && working > 0 ? (dependents / working) * 100 : null;
+        const periods = [youngPoint?.period, workingPoint?.period, olderPoint?.period].filter(Number.isFinite);
+        return {
+            title,
+            id,
+            dependents,
+            working,
+            ratio,
+            period: periods.length ? Math.min(...periods) : null,
+            highlight,
+            total
+        };
+    };
+
+    const selected = currentMunicipality();
+    const orderedCountyIds = [
+        selected.id,
+        ...countyMunicipalityIds.filter(id => id !== selected.id)
+    ];
+    const countryYoung = youngBundle.byId[countryId];
+    const countryWorking = workingBundle.byId[countryId];
+    const countryOlder = olderBundle.byId[countryId];
+    const rows = [
+        ...orderedCountyIds.map(id => {
+            const municipality = municipalities.find(item => item.id === id);
+            return rowFor(
+                municipality?.name || id,
+                id,
+                youngBundle.byId[id]?.latest,
+                workingBundle.byId[id]?.latest,
+                olderBundle.byId[id]?.latest,
+                id === selected.id
+            );
+        }),
+        rowFor("Höglandet", "highland", youngBundle.highland.latest, workingBundle.highland.latest, olderBundle.highland.latest, false, true),
+        rowFor("Jönköpings län", "county", youngBundle.county.latest, workingBundle.county.latest, olderBundle.county.latest, false, true),
+        rowFor("Riket", countryId, countryYoung?.latest, countryWorking?.latest, countryOlder?.latest, false, true)
+    ];
+
+    const period = rows.find(row => row.highlight)?.period || rows.find(row => row.period)?.period || "";
+    periodEl.textContent = period ? `Mätår: ${period}` : "";
+    tbody.innerHTML = rows.map(row => `
+        <tr class="${row.highlight ? "selected-row" : row.total ? "summary-row" : ""}">
+            <td>${escapeHtml(row.title)}</td>
+            <td>${ratioText(row.ratio)}</td>
+            <td>${number(row.dependents)}</td>
+            <td>${number(row.working)}</td>
+        </tr>
+    `).join("");
+}
+
+function renderCommutingFlow(tabId, bundles) {
+    const inBundle = bundles.find(bundle => bundle.metric.id === "N02277");
+    const outBundle = bundles.find(bundle => bundle.metric.id === "N02278");
+    const mapEl = document.getElementById(`${tabId}-commute-map`);
+    const summaryEl = document.getElementById(`${tabId}-commute-summary`);
+    const tableEl = document.getElementById(`${tabId}-commute-table`);
+    const periodEl = document.getElementById(`${tabId}-commuting-flow-period`);
+    if (!inBundle || !outBundle || !mapEl || !summaryEl || !tableEl) return;
+
+    const number = value => Number.isFinite(value)
+        ? Math.round(value).toLocaleString("sv-SE")
+        : "-";
+    const signedNumber = value => {
+        if (!Number.isFinite(value)) return "-";
+        const abs = Math.round(Math.abs(value)).toLocaleString("sv-SE");
+        if (value > 0) return `+${abs}`;
+        if (value < 0) return `-${abs}`;
+        return "0";
+    };
+    const rows = countyMunicipalityIds.map(id => {
+        const municipality = municipalities.find(item => item.id === id);
+        const inPoint = inBundle.byId[id]?.latest;
+        const outPoint = outBundle.byId[id]?.latest;
+        const inValue = inPoint?.value;
+        const outValue = outPoint?.value;
+        const net = Number.isFinite(inValue) && Number.isFinite(outValue) ? inValue - outValue : null;
+        const periods = [inPoint?.period, outPoint?.period].filter(Number.isFinite);
+        return {
+            id,
+            title: municipality?.name || id,
+            inValue,
+            outValue,
+            net,
+            period: periods.length ? Math.min(...periods) : null,
+            coords: municipalityCoordinates[id],
+            selected: id === selectedMunicipality
+        };
+    }).filter(row => Number.isFinite(row.inValue) || Number.isFinite(row.outValue));
+
+    const selectedRow = rows.find(row => row.selected);
+    const period = selectedRow?.period || rows.find(row => row.period)?.period || "";
+    if (periodEl) periodEl.textContent = period ? `Mätår: ${period}` : "Senaste tillgängliga mätår";
+
+    if (selectedRow) {
+        summaryEl.innerHTML = `
+            <div class="commute-summary-row">
+                <span class="commute-summary-label">Vald kommun</span>
+                <span class="commute-summary-value">${escapeHtml(selectedRow.title)}</span>
+            </div>
+            <div class="commute-summary-row">
+                <span class="commute-summary-label">Inpendling</span>
+                <span class="commute-summary-value">${number(selectedRow.inValue)}</span>
+            </div>
+            <div class="commute-summary-row">
+                <span class="commute-summary-label">Utpendling</span>
+                <span class="commute-summary-value">${number(selectedRow.outValue)}</span>
+            </div>
+            <div class="commute-summary-row">
+                <span class="commute-summary-label">Netto</span>
+                <span class="commute-summary-value">${signedNumber(selectedRow.net)}</span>
+            </div>`;
+    } else {
+        summaryEl.innerHTML = `<div class="meta">Saknar pendlingsdata för vald kommun.</div>`;
+    }
+
+    const sortedRows = [
+        ...rows.filter(row => row.selected),
+        ...rows.filter(row => !row.selected).sort((a, b) => a.title.localeCompare(b.title, "sv-SE"))
+    ];
+    tableEl.innerHTML = sortedRows.map(row => `
+        <tr class="${row.selected ? "selected-row" : ""}">
+            <td>${escapeHtml(row.title)}</td>
+            <td>${number(row.inValue)}</td>
+            <td>${number(row.outValue)}</td>
+            <td>${signedNumber(row.net)}</td>
+        </tr>
+    `).join("");
+
+    renderCommutingMap(tabId, rows);
+}
+
+function renderCommutingMap(tabId, rows) {
+    const mapEl = document.getElementById(`${tabId}-commute-map`);
+    if (!mapEl) return;
+    if (commuteResizeObserver) {
+        commuteResizeObserver.disconnect();
+        commuteResizeObserver = null;
+    }
+    if (commuteLeafletMap) {
+        commuteLeafletMap.remove();
+        commuteLeafletMap = null;
+    }
+
+    const mappableRows = rows.filter(row => row.coords && (Number.isFinite(row.inValue) || Number.isFinite(row.outValue)));
+    if (!mappableRows.length) {
+        mapEl.innerHTML = `<div class="loading">Ingen pendlingsdata att visa.</div>`;
+        return;
+    }
+    if (typeof L === "undefined") {
+        mapEl.innerHTML = `<div class="loading error">Kartan kunde inte laddas.</div>`;
+        return;
+    }
+
+    mapEl.innerHTML = `<div class="commute-map-host" id="${tabId}-commute-leaflet"></div>`;
+    const mapHost = document.getElementById(`${tabId}-commute-leaflet`);
+    commuteLeafletMap = L.map(mapHost, {
+        scrollWheelZoom: true,
+        zoomControl: true,
+        preferCanvas: true
+    });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        minZoom: 3,
+        detectRetina: true,
+        attribution: "&copy; OpenStreetMap"
+    }).addTo(commuteLeafletMap);
+
+    const bounds = L.latLngBounds([]);
+    const maxVolume = Math.max(1, ...mappableRows.map(row => (row.inValue || 0) + (row.outValue || 0)));
+    mappableRows.forEach(row => {
+        const volume = (row.inValue || 0) + (row.outValue || 0);
+        const radius = row.selected ? 14 : 7 + (volume / maxVolume) * 13;
+        const marker = L.circleMarker(row.coords, {
+            radius,
+            color: row.selected ? "#003f70" : "#ffffff",
+            weight: row.selected ? 3 : 2,
+            fillColor: commutingColor(row.net),
+            fillOpacity: 0.88
+        }).addTo(commuteLeafletMap);
+        marker.bindPopup(commutingPopup(row));
+        bounds.extend(row.coords);
+    });
+
+    const fitMap = () => {
+        if (!commuteLeafletMap || !bounds.isValid()) return;
+        commuteLeafletMap.invalidateSize({ pan: false });
+        commuteLeafletMap.fitBounds(bounds, { padding: [42, 42], maxZoom: 10 });
+    };
+    window.requestAnimationFrame(fitMap);
+    window.setTimeout(fitMap, 180);
+    window.setTimeout(fitMap, 520);
+    if (typeof ResizeObserver !== "undefined") {
+        commuteResizeObserver = new ResizeObserver(() => commuteLeafletMap?.invalidateSize({ pan: false }));
+        commuteResizeObserver.observe(mapHost);
+    }
+}
+
+function commutingColor(net) {
+    if (!Number.isFinite(net)) return "#6b7280";
+    if (net > 0) return "#005a9c";
+    if (net < 0) return "#c04f15";
+    return "#6b7280";
+}
+
+function commutingPopup(row) {
+    const number = value => Number.isFinite(value)
+        ? Math.round(value).toLocaleString("sv-SE")
+        : "-";
+    const net = Number.isFinite(row.net)
+        ? `${row.net > 0 ? "+" : row.net < 0 ? "-" : ""}${Math.round(Math.abs(row.net)).toLocaleString("sv-SE")}`
+        : "-";
+    return `
+        <strong>${escapeHtml(row.title)}</strong><br>
+        Inpendling: ${number(row.inValue)}<br>
+        Utpendling: ${number(row.outValue)}<br>
+        Netto: ${net}`;
 }
 
 function renderPopulationShares(tabId, populationBundle) {
@@ -1736,6 +2562,13 @@ window.addEventListener("resize", () => {
     const tabId = activeTabId();
     if (tabId === "bathing") {
         bathLeafletMap?.invalidateSize();
+        return;
+    }
+    if (tabId === "business") {
+        commuteLeafletMap?.invalidateSize();
+    }
+    if (tabId === "map") {
+        metricLeafletMap?.invalidateSize();
         return;
     }
     const metricId = document.getElementById(`${tabId}-metric`)?.value;
