@@ -312,6 +312,15 @@
         background: #f8fafc;
     }
 
+    tr.summary-row {
+        background: #f8fafc;
+        font-weight: 850;
+    }
+
+    tr.selected-row {
+        background: #eef7fc;
+    }
+
     .source {
         color: var(--muted);
         font-size: 0.88rem;
@@ -668,6 +677,7 @@ const highlandIds = ["0604", "0686", "0682", "0684", "0687", "0685"];
 const countyMunicipalityIds = municipalities.map(item => item.id);
 const countyId = "0006";
 const countryId = "0000";
+const NATIONAL_POPULATION_MAY_2026 = 10608128;
 
 const colors = {
     selected: "#005a9c",
@@ -979,6 +989,7 @@ async function renderActiveTab(tabId = activeTabId()) {
             <div class="kpi-grid" id="${tabId}-cards">
                 ${section.metrics.map(item => cardSkeleton(item)).join("")}
             </div>
+            ${tabId === "population" ? populationShareSection(tabId) : ""}
             <article class="comparison">
                 <div class="comparison-head">
                     <div>
@@ -1016,6 +1027,7 @@ async function renderActiveTab(tabId = activeTabId()) {
     try {
         const rows = await Promise.all(section.metrics.map(loadMetricBundle));
         rows.forEach(bundle => renderCard(tabId, bundle));
+        if (tabId === "population") renderPopulationShares(tabId, rows.find(bundle => bundle.metric.id === "N01951"));
         await renderComparison(tabId, section.metrics[0]);
         loadedTabs.add(tabId);
         setStatus(`Senast laddad: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
@@ -1023,6 +1035,87 @@ async function renderActiveTab(tabId = activeTabId()) {
         console.error(error);
         setStatus("Kunde inte ladda alla värden");
     }
+}
+
+function populationShareSection(tabId) {
+    return `
+        <article class="comparison" id="${tabId}-population-shares">
+            <div>
+                <h2 class="comparison-title">Höglandskommunernas andel av befolkningen</h2>
+                <div class="meta" id="${tabId}-population-share-period">Laddar...</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kommun/område</th>
+                        <th>Invånare</th>
+                        <th>Andel av Höglandet</th>
+                        <th>Andel av Jönköpings län</th>
+                        <th>Andel av landet</th>
+                    </tr>
+                </thead>
+                <tbody id="${tabId}-population-share-table">
+                    <tr><td colspan="5">Laddar...</td></tr>
+                </tbody>
+            </table>
+            <div class="meta">Kommun- och länsbefolkning: SCB via Kolada, KPI N01951. Riket: SCB:s senaste nyckeltal för maj 2026, 10 608 128 invånare.</div>
+        </article>`;
+}
+
+function renderPopulationShares(tabId, populationBundle) {
+    const tbody = document.getElementById(`${tabId}-population-share-table`);
+    const periodEl = document.getElementById(`${tabId}-population-share-period`);
+    if (!tbody || !populationBundle) return;
+
+    const populationFor = id => populationBundle.byId[id]?.latest?.value;
+    const periodFor = id => populationBundle.byId[id]?.latest?.period;
+    const highlandPopulation = populationBundle.highland.latest?.value;
+    const countyPopulation = populationBundle.county.latest?.value;
+    const share = (part, whole) => Number.isFinite(part) && Number.isFinite(whole) && whole > 0
+        ? `${((part / whole) * 100).toLocaleString("sv-SE", { maximumFractionDigits: 1 })}%`
+        : "-";
+
+    const rows = [
+        ...highlandIds.map(id => {
+            const municipality = municipalities.find(item => item.id === id);
+            const population = populationFor(id);
+            return {
+                title: municipality?.name || id,
+                population,
+                highlandShare: share(population, highlandPopulation),
+                countyShare: share(population, countyPopulation),
+                countryShare: share(population, NATIONAL_POPULATION_MAY_2026),
+                selected: id === selectedMunicipality
+            };
+        }),
+        {
+            title: "Höglandet totalt",
+            population: highlandPopulation,
+            highlandShare: "100%",
+            countyShare: share(highlandPopulation, countyPopulation),
+            countryShare: share(highlandPopulation, NATIONAL_POPULATION_MAY_2026),
+            total: true
+        },
+        {
+            title: "Jönköpings län totalt",
+            population: countyPopulation,
+            highlandShare: "-",
+            countyShare: "-",
+            countryShare: share(countyPopulation, NATIONAL_POPULATION_MAY_2026),
+            total: true
+        }
+    ];
+
+    periodEl.textContent = `Kommun/län: ${periodFor(selectedMunicipality) || populationBundle.highland.latest?.period || "-"}. Riket: maj 2026.`;
+    tbody.innerHTML = rows.map(row => `
+        <tr class="${row.selected ? "selected-row" : row.total ? "summary-row" : ""}">
+            <td>${escapeHtml(row.title)}</td>
+            <td>${Number.isFinite(row.population) ? Math.round(row.population).toLocaleString("sv-SE") : "-"}</td>
+            <td>${row.highlandShare}</td>
+            <td>${row.countyShare}</td>
+            <td>${row.countryShare}</td>
+        </tr>
+    `).join("");
 }
 
 async function renderBathingWaterTab() {
