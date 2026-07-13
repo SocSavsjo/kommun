@@ -3197,13 +3197,13 @@ async function renderBathingWaterTab() {
     setStatus("Laddar badvatten...");
     main.innerHTML = `
         <section class="tab-panel active" id="bathing">
-            <div class="info">Badplatser och badvatten hämtas live från Havs- och vattenmyndigheten och filtreras på Höglandets kommuner.</div>
+            <div class="info">Badplatser och badvatten hämtas live från Havs- och vattenmyndigheten och filtreras på Jönköpings läns kommuner.</div>
             <div class="bath-filter">
                 <div class="field">
                     <label for="bath-municipality">Visa</label>
                     <select id="bath-municipality">
-                        <option value="highland">Hela Höglandet</option>
-                        ${highlandIds.map(id => {
+                        <option value="county">Hela Jönköpings län</option>
+                        ${countyMunicipalityIds.map(id => {
                             const item = municipalities.find(municipality => municipality.id === id);
                             return `<option value="${id}">${item.name}</option>`;
                         }).join("")}
@@ -3247,7 +3247,7 @@ async function renderBathingWaterTab() {
         </section>`;
 
     const select = document.getElementById("bath-municipality");
-    select.value = highlandIds.includes(selectedMunicipality) ? selectedMunicipality : "highland";
+    select.value = countyMunicipalityIds.includes(selectedMunicipality) ? selectedMunicipality : "county";
     select.addEventListener("change", () => renderBathingWaterContent(select.value));
 
     try {
@@ -3263,10 +3263,10 @@ async function renderBathingWaterTab() {
 
 async function renderBathingWaterContent(filterId) {
     const [allItems, forecastMap] = await Promise.all([loadBathingWaters(), loadBathingForecasts()]);
-    const highlandItems = allItems.filter(item => highlandIds.includes(item.municipalityId));
-    const visibleItems = filterId === "highland"
-        ? highlandItems
-        : highlandItems.filter(item => item.municipalityId === filterId);
+    const countyItems = allItems.filter(item => countyMunicipalityIds.includes(item.municipalityId));
+    const visibleItems = filterId === "county"
+        ? countyItems
+        : countyItems.filter(item => item.municipalityId === filterId);
     const visibleWithForecasts = visibleItems.map(item => ({
         ...item,
         forecast: pickBathForecast(forecastMap.get(item.id))
@@ -3346,7 +3346,7 @@ function renderBathingCards(items, filterId) {
         adviceCount.toLocaleString("sv-SE")
     ];
     const notes = [
-        filterId === "highland" ? "Registrerade badplatser i Höglandet" : "Registrerade badplatser i vald kommun",
+        filterId === "county" ? "Registrerade badplatser i Jönköpings län" : "Registrerade badplatser i vald kommun",
         "Kommuner med minst en registrerad badplats",
         `Med badtemperaturprognos från HaV. EU-bad i urvalet: ${euCount.toLocaleString("sv-SE")}`,
         "Badplatser med aktiv avrådan i API:t"
