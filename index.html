@@ -1015,6 +1015,73 @@
     .status-dot.warning { background: var(--bad); }
     .status-dot.neutral { background: var(--muted); }
 
+
+    .vehicle-split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.85fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .vehicle-block {
+        display: grid;
+        gap: 14px;
+    }
+
+    .vehicle-block h2 {
+        margin: 0;
+        color: var(--primary-dark);
+        font-size: 1.2rem;
+        font-weight: 900;
+    }
+
+    .vehicle-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        border-radius: 999px;
+        background: #edf6fb;
+        color: var(--primary-dark);
+        font-size: 0.78rem;
+        font-weight: 850;
+        padding: 5px 9px;
+    }
+
+    .vehicle-badge.org {
+        background: #edf7f2;
+        color: #176049;
+    }
+
+    .vehicle-card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .vehicle-card-grid.compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vehicle-type-table td:first-child {
+        font-weight: 750;
+    }
+
+    .vehicle-note {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.45;
+    }
+
+    @media (max-width: 1200px) {
+        .vehicle-split { grid-template-columns: 1fr; }
+        .vehicle-card-grid, .vehicle-card-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+        .vehicle-card-grid, .vehicle-card-grid.compact { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 1200px) {
         .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .header-map-card { position: static; transform: none; margin: 0 auto; }
@@ -1530,17 +1597,19 @@
         <button class="tab-btn" type="button" data-tab="housing">Bostäder och infrastruktur</button>
         <button class="tab-btn" type="button" data-tab="democracy">Val och demokrati</button>
         <button class="tab-btn" type="button" data-tab="climate">Miljö och klimat</button>
+        <button class="tab-btn" type="button" data-tab="vehicles">Fordon</button>
         <button class="tab-btn" type="button" data-tab="bathing">Badvatten</button>
         <button class="tab-btn" type="button" data-tab="map">Karta</button>
     </nav>
 
     <main id="main"></main>
 
-    <p class="source">Källa: Kolada API v3, Havs- och vattenmyndighetens API för badplatser och badvatten samt Trafikverkets Lastkajen/NetInfo för ATK-kartlager. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
+    <p class="source">Källa: Kolada API v3, SCB/Trafikanalys fordonsstatistik, Havs- och vattenmyndighetens API för badplatser och badvatten samt Trafikverkets Lastkajen/NetInfo för ATK-kartlager. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
 </div>
 
 <script>
 const API_BASE = "https://api.kolada.se/v3";
+const SCB_VEHICLE_API_BASE = "https://www.statistikdatabasen.scb.se/api/v1/sv/ssd/START/TK/TK1001/TK1001A";
 const HAV_API_BASE = "https://gw.havochvatten.se/external-public/bathing-waters/v2";
 const DEFAULT_MUNICIPALITY = "0684";
 let selectedMunicipality = DEFAULT_MUNICIPALITY;
@@ -1561,6 +1630,7 @@ let atkMunicipalityLayer = null;
 let atkMunicipalityMarker = null;
 let mapSectionId = "population";
 let mapMetricId = "N01951";
+let vehicleTrafficCache = null;
 
 const municipalities = [
     { id: "0604", name: "Aneby" },
@@ -1897,6 +1967,45 @@ function crimeCountMetric(id, title) {
     return { ...metric(id, title, "Anmälda brott", "integer", "sum", false), per100kToCount: true };
 }
 
+const vehicleTrafficTypes = [
+    { id: "total", title: "Fordon i trafik totalt", note: "Summerar alla fordonsslag i SCB-tabellen." },
+    { id: "10", title: "Personbilar" },
+    { id: "20", title: "Lätta lastbilar" },
+    { id: "21", title: "Tunga lastbilar" },
+    { id: "22", title: "Dragfordon" },
+    { id: "30", title: "Bussar" },
+    { id: "40", title: "Motorcyklar" },
+    { id: "50", title: "Moped klass I" },
+    { id: "60", title: "Traktorer" },
+    { id: "70", title: "Snöskotrar" },
+    { id: "71", title: "Terränghjulingar" },
+    { id: "72", title: "Terrängskotrar" },
+    { id: "80", title: "Släpvagnar" }
+];
+
+const vehicleTrafficMetric = {
+    id: "SCB_VEHICLES",
+    title: "Fordon i trafik",
+    group: "Kommunen som geografiskt område",
+    format: "integer",
+    aggregate: "sum",
+    higherIsGood: true,
+    suffix: ""
+};
+
+const vehicleGeoKoladaMetrics = [
+    metric("U00501", "Fossiloberoende personbilar", "Kommunen som geografiskt område", "percent", "avg"),
+    metric("N07710", "Elbilsladdpunkter normalladdare", "Kommunen som geografiskt område", "integer", "sum"),
+    metric("N07711", "Elbilsladdpunkter snabbladdare", "Kommunen som geografiskt område", "integer", "sum")
+];
+
+const vehicleOrganizationMetrics = [
+    metric("U00502", "Fossiloberoende fordon", "Kommunorganisationen", "percent", "avg"),
+    metric("U00505", "Fossiloberoende personbilar", "Kommunorganisationen", "percent", "avg")
+];
+
+const embeddedVehicleTrafficData = {"source":"SCB/Trafikanalys Fordon i trafik efter län och kommun samt fordonsslag","latestYear":"2025","previousYear":"2024","updated":"2026-02-12","regions":{"0000":{"2024":{"10":4977791,"20":618274,"21":85034,"22":9647,"30":14178,"40":318381,"50":105351,"60":398239,"70":212504,"71":105323,"72":5624,"80":1341430},"2025":{"10":5039431,"20":627910,"21":86125,"22":9791,"30":14528,"40":320585,"50":106170,"60":408941,"70":214533,"71":105925,"72":5451,"80":1354310}},"0006":{"2024":{"10":192630,"20":23097,"21":3805,"22":464,"30":319,"40":13614,"50":4035,"60":21354,"70":568,"71":4605,"72":22,"80":60947},"2025":{"10":195373,"20":23478,"21":3832,"22":484,"30":287,"40":13674,"50":4019,"60":21932,"70":572,"71":4634,"72":21,"80":61312}},"0604":{"2024":{"10":4062,"20":847,"21":75,"22":7,"30":53,"40":374,"50":101,"60":1014,"70":11,"71":176,"72":1,"80":1868},"2025":{"10":4127,"20":850,"21":77,"22":6,"30":53,"40":375,"50":92,"60":1027,"70":11,"71":179,"72":1,"80":1891}},"0617":{"2024":{"10":5395,"20":840,"21":86,"22":3,"30":1,"40":395,"50":146,"60":737,"70":26,"71":235,"72":0,"80":1741},"2025":{"10":5414,"20":845,"21":75,"22":3,"30":0,"40":382,"50":129,"60":748,"70":26,"71":233,"72":0,"80":1742}},"0642":{"2024":{"10":4100,"20":369,"21":77,"22":12,"30":5,"40":275,"50":108,"60":386,"70":12,"71":63,"72":1,"80":1427},"2025":{"10":4142,"20":387,"21":84,"22":12,"30":5,"40":294,"50":110,"60":404,"70":10,"71":62,"72":1,"80":1426}},"0643":{"2024":{"10":7027,"20":705,"21":112,"22":5,"30":58,"40":544,"50":227,"60":823,"70":32,"71":139,"72":1,"80":2402},"2025":{"10":7104,"20":712,"21":104,"22":11,"30":58,"40":570,"50":277,"60":854,"70":34,"71":146,"72":1,"80":2393}},"0662":{"2024":{"10":16501,"20":2195,"21":308,"22":31,"30":31,"40":1084,"50":251,"60":2062,"70":45,"71":638,"72":2,"80":5001},"2025":{"10":16594,"20":2180,"21":321,"22":33,"30":32,"40":1063,"50":239,"60":2084,"70":46,"71":654,"72":2,"80":5013}},"0665":{"2024":{"10":8084,"20":1018,"21":165,"22":7,"30":10,"40":584,"50":224,"60":1171,"70":35,"71":264,"72":1,"80":3006},"2025":{"10":8231,"20":1061,"21":194,"22":15,"30":3,"40":598,"50":207,"60":1201,"70":34,"71":277,"72":1,"80":3092}},"0680":{"2024":{"10":70822,"20":7532,"21":1298,"22":250,"30":83,"40":4344,"50":1490,"60":4398,"70":221,"71":929,"72":7,"80":19425},"2025":{"10":72321,"20":7668,"21":1302,"22":250,"30":78,"40":4314,"50":1524,"60":4603,"70":217,"71":924,"72":6,"80":19399}},"0682":{"2024":{"10":16638,"20":1755,"21":215,"22":18,"30":40,"40":1375,"50":235,"60":2101,"70":44,"71":487,"72":2,"80":4976},"2025":{"10":16855,"20":1775,"21":220,"22":22,"30":21,"40":1384,"50":257,"60":2144,"70":46,"71":484,"72":2,"80":5046}},"0683":{"2024":{"10":19498,"20":2190,"21":671,"22":81,"30":13,"40":1381,"50":307,"60":2312,"70":45,"71":532,"72":1,"80":6341},"2025":{"10":19731,"20":2234,"21":673,"22":86,"30":4,"40":1381,"50":287,"60":2388,"70":44,"71":543,"72":1,"80":6414}},"0684":{"2024":{"10":6477,"20":857,"21":105,"22":12,"30":1,"40":547,"50":106,"60":1518,"70":22,"71":262,"72":3,"80":2422},"2025":{"10":6582,"20":889,"21":114,"22":12,"30":1,"40":562,"50":107,"60":1546,"70":23,"71":250,"72":3,"80":2493}},"0685":{"2024":{"10":15534,"20":2242,"21":267,"22":17,"30":11,"40":1410,"50":354,"60":2506,"70":41,"71":470,"72":2,"80":5924},"2025":{"10":15652,"20":2301,"21":271,"22":19,"30":19,"40":1423,"50":362,"60":2533,"70":44,"71":478,"72":2,"80":5933}},"0686":{"2024":{"10":9371,"20":1333,"21":140,"22":8,"30":9,"40":745,"50":229,"60":1458,"70":23,"71":245,"72":1,"80":3499},"2025":{"10":9447,"20":1353,"21":135,"22":5,"30":9,"40":772,"50":199,"60":1511,"70":24,"71":247,"72":1,"80":3519}},"0687":{"2024":{"10":9121,"20":1214,"21":286,"22":13,"30":4,"40":556,"50":257,"60":868,"70":11,"71":165,"72":0,"80":2915},"2025":{"10":9173,"20":1223,"21":262,"22":10,"30":4,"40":556,"50":229,"60":889,"70":13,"71":157,"72":0,"80":2951}}}};
+
 const afMonthlyUnemploymentData = {"source":"Arbetsförmedlingen, Andel inskrivna arbetslösa av arbetskraften BAS","sourcePeriod":"2026-06","regions":{"0604":{"total":[{"period":"2026-01","value":4.959174472774634},{"period":"2026-02","value":4.8431977137700235},{"period":"2026-03","value":4.788074983061056},{"period":"2026-04","value":4.579462716545318},{"period":"2026-05","value":4.580727793264522},{"period":"2026-06","value":4.759752974845609}],"young":[{"period":"2026-01","value":6.376195536663124},{"period":"2026-02","value":7.04375667022412},{"period":"2026-03","value":7.71290840921264},{"period":"2026-04","value":7.417360924482666},{"period":"2026-05","value":8.70265914585012},{"period":"2026-06","value":8.407437348423606}]},"0617":{"total":[{"period":"2026-01","value":4.170528266913809},{"period":"2026-02","value":4.2377869334902885},{"period":"2026-03","value":3.9611733637855973},{"period":"2026-04","value":3.643312556926759},{"period":"2026-05","value":3.7094612704368806},{"period":"2026-06","value":4.011799410029498}],"young":[{"period":"2026-01","value":6.116207951070336},{"period":"2026-02","value":5.316973415132924},{"period":"2026-03","value":4.101161995898838},{"period":"2026-04","value":4.107479034742427},{"period":"2026-05","value":4.107479034742427},{"period":"2026-06","value":6.377507286130636}]},"0642":{"total":[{"period":"2026-01","value":5.145916877216568},{"period":"2026-02","value":5.1460361613351875},{"period":"2026-03","value":5.091937765205092},{"period":"2026-04","value":5.23312456506611},{"period":"2026-05","value":5.145320539563343},{"period":"2026-06","value":5.193482688391039}],"young":[{"period":"2026-01","value":11.039283938339134},{"period":"2026-02","value":11.363070022427111},{"period":"2026-03","value":11.967090501121914},{"period":"2026-04","value":11.662098180912036},{"period":"2026-05","value":10.751617720258835},{"period":"2026-06","value":11.928429423459246}]},"0643":{"total":[{"period":"2026-01","value":3.2209212130166587},{"period":"2026-02","value":3.3210332103321036},{"period":"2026-03","value":3.023152927296859},{"period":"2026-04","value":2.9472443265546713},{"period":"2026-05","value":2.841927013031634},{"period":"2026-06","value":3.162539838195636}],"young":[{"period":"2026-01","value":5.475880052151239},{"period":"2026-02","value":6.216006216006216},{"period":"2026-03","value":5.405405405405405},{"period":"2026-04","value":4.304932735426009},{"period":"2026-05","value":3.978576893649579},{"period":"2026-06","value":5.175694532538374}]},"0662":{"total":[{"period":"2026-01","value":6.255684919046753},{"period":"2026-02","value":5.964716721453189},{"period":"2026-03","value":5.941608331910534},{"period":"2026-04","value":5.801260697996208},{"period":"2026-05","value":5.647991977025118},{"period":"2026-06","value":5.516219988037937}],"young":[{"period":"2026-01","value":6.6345059352810445},{"period":"2026-02","value":5.970149253731343},{"period":"2026-03","value":6.349206349206349},{"period":"2026-04","value":6.069084256967611},{"period":"2026-05","value":5.854600042890843},{"period":"2026-06","value":6.715344028140489}]},"0665":{"total":[{"period":"2026-01","value":4.715335879379236},{"period":"2026-02","value":4.685897082345155},{"period":"2026-03","value":4.404033724582575},{"period":"2026-04","value":4.070619073317401},{"period":"2026-05","value":4.0932648188290175},{"period":"2026-06","value":4.16469890500928}],"young":[{"period":"2026-01","value":5.7944355024143475},{"period":"2026-02","value":6.023958927552767},{"period":"2026-03","value":5.014682629320081},{"period":"2026-04","value":4.434490481522957},{"period":"2026-05","value":4.131038312048862},{"period":"2026-06","value":6.216931216931217}]},"0680":{"total":[{"period":"2026-01","value":5.8008345448218215},{"period":"2026-02","value":5.761154571261404},{"period":"2026-03","value":5.614637046856876},{"period":"2026-04","value":5.520822731219912},{"period":"2026-05","value":5.300355651569695},{"period":"2026-06","value":5.268074946800228}],"young":[{"period":"2026-01","value":5.903504534964847},{"period":"2026-02","value":5.913493728518501},{"period":"2026-03","value":5.276630662611379},{"period":"2026-04","value":4.984401461805865},{"period":"2026-05","value":4.486780023146087},{"period":"2026-06","value":4.60162818630722}]},"0682":{"total":[{"period":"2026-01","value":7.497405741957801},{"period":"2026-02","value":7.526358475263585},{"period":"2026-03","value":7.303337354677112},{"period":"2026-04","value":7.190023598692329},{"period":"2026-05","value":6.952340729670901},{"period":"2026-06","value":6.794229884435303}],"young":[{"period":"2026-01","value":9.388377700142696},{"period":"2026-02","value":8.845208845208846},{"period":"2026-03","value":8.000784390626531},{"period":"2026-04","value":7.881580237231643},{"period":"2026-05","value":7.5663522166283785},{"period":"2026-06","value":9.18889918548505}]},"0683":{"total":[{"period":"2026-01","value":5.00280606109196},{"period":"2026-02","value":4.799524575395833},{"period":"2026-03","value":4.523430976160934},{"period":"2026-04","value":4.326405798742851},{"period":"2026-05","value":4.322109506658296},{"period":"2026-06","value":4.246304535525056}],"young":[{"period":"2026-01","value":7.3897604171348945},{"period":"2026-02","value":6.6705518447124215},{"period":"2026-03","value":5.5779029230356665},{"period":"2026-04","value":5.570185226511939},{"period":"2026-05","value":5.292938293606594},{"period":"2026-06","value":5.4989544868087386}]},"0684":{"total":[{"period":"2026-01","value":7.7589430387635545},{"period":"2026-02","value":7.51589181104325},{"period":"2026-03","value":7.178800105937155},{"period":"2026-04","value":6.844426436441271},{"period":"2026-05","value":6.657316503038803},{"period":"2026-06","value":6.408420003736688}],"young":[{"period":"2026-01","value":8.143644846599745},{"period":"2026-02","value":7.309817254568636},{"period":"2026-03","value":7.145895363675033},{"period":"2026-04","value":6.811409110259685},{"period":"2026-05","value":6.794055201698514},{"period":"2026-06","value":7.0896047264031505}]},"0685":{"total":[{"period":"2026-01","value":6.392148387342835},{"period":"2026-02","value":6.235252965306707},{"period":"2026-03","value":5.98644650186122},{"period":"2026-04","value":5.730804987073852},{"period":"2026-05","value":5.549221312780662},{"period":"2026-06","value":5.660125144017466}],"young":[{"period":"2026-01","value":8.183828950602114},{"period":"2026-02","value":7.377805102981863},{"period":"2026-03","value":6.504065040650407},{"period":"2026-04","value":5.854020007410152},{"period":"2026-05","value":5.713579025476132},{"period":"2026-06","value":6.395637084779375}]},"0686":{"total":[{"period":"2026-01","value":6.028527855028258},{"period":"2026-02","value":5.988524982070285},{"period":"2026-03","value":5.7124077559678526},{"period":"2026-04","value":5.354261697508118},{"period":"2026-05","value":5.328925751496023},{"period":"2026-06","value":5.251327750482366}],"young":[{"period":"2026-01","value":7.403996684777605},{"period":"2026-02","value":7.711374277058662},{"period":"2026-03","value":7.043286867204696},{"period":"2026-04","value":5.609532538955087},{"period":"2026-05","value":5.2535570959503834},{"period":"2026-06","value":6.420603972068559}]},"0687":{"total":[{"period":"2026-01","value":6.636979890518195},{"period":"2026-02","value":6.52488439606994},{"period":"2026-03","value":6.242846738112579},{"period":"2026-04","value":6.0274128096711035},{"period":"2026-05","value":5.972691401481818},{"period":"2026-06","value":5.855706760731207}],"young":[{"period":"2026-01","value":8.085287846481876},{"period":"2026-02","value":8.07702138536253},{"period":"2026-03","value":7.15929429813347},{"period":"2026-04","value":6.542294914387938},{"period":"2026-05","value":6.141772583809605},{"period":"2026-06","value":6.955335833617457}]},"0006":{"total":[{"period":"2026-01","value":5.842676913270331},{"period":"2026-02","value":5.763266226808775},{"period":"2026-03","value":5.571900792418276},{"period":"2026-04","value":5.414755773407706},{"period":"2026-05","value":5.2665755220861525},{"period":"2026-06","value":5.240467578206574}],"young":[{"period":"2026-01","value":6.834679850476305},{"period":"2026-02","value":6.644358313873709},{"period":"2026-03","value":6.0154352895919985},{"period":"2026-04","value":5.6448545749344445},{"period":"2026-05","value":5.294096490982692},{"period":"2026-06","value":5.883549757644666}]},"0000":{"total":[{"period":"2026-01","value":6.814663020226368},{"period":"2026-02","value":6.758773125166585},{"period":"2026-03","value":6.642092994027822},{"period":"2026-04","value":6.480803392828028},{"period":"2026-05","value":6.359899988285759},{"period":"2026-06","value":6.447386041585309}],"young":[{"period":"2026-01","value":7.544858029221242},{"period":"2026-02","value":7.3824955279197235},{"period":"2026-03","value":7.082220042615077},{"period":"2026-04","value":6.678673674990679},{"period":"2026-05","value":6.36913532857019},{"period":"2026-06","value":7.2551845645179}]}},"areas":{"highland":{"total":[{"period":"2026-01","value":6.736076843624817},{"period":"2026-02","value":6.651124078595832},{"period":"2026-03","value":6.403199146240114},{"period":"2026-04","value":6.173725771715722},{"period":"2026-05","value":6.031446000515508},{"period":"2026-06","value":5.9687670098666805}],"young":[{"period":"2026-01","value":8.294772922022279},{"period":"2026-02","value":7.948381202535259},{"period":"2026-03","value":7.262553883924748},{"period":"2026-04","value":6.701612557667862},{"period":"2026-05","value":6.521553076769463},{"period":"2026-06","value":7.485260189694951}]}}};
 
 function currentMunicipality() {
@@ -1961,6 +2070,10 @@ function activeTabId() {
 }
 
 async function renderActiveTab(tabId = activeTabId()) {
+    if (tabId === "vehicles") {
+        await renderVehiclesTab();
+        return;
+    }
     if (tabId === "bathing") {
         await renderBathingWaterTab();
         return;
@@ -2036,10 +2149,14 @@ async function renderActiveTab(tabId = activeTabId()) {
         if (tabId === "business") renderCommutingFlow(tabId, rows);
         await renderComparison(tabId, section.metrics[0]);
         loadedTabs.add(tabId);
-        setStatus(`Senast laddad: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
+        if (activeTabId() === tabId) {
+            setStatus(`Senast laddad: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
+        }
     } catch (error) {
         console.error(error);
-        setStatus("Kunde inte ladda alla värden");
+        if (activeTabId() === tabId) {
+            setStatus("Kunde inte ladda alla värden");
+        }
     }
 }
 
@@ -2327,6 +2444,318 @@ function resultTone(value) {
 
 function debtTone(value) {
     return value > 0 ? "bad" : value < 0 ? "good" : "";
+}
+
+async function renderVehiclesTab() {
+    const main = document.getElementById("main");
+    setStatus("Laddar fordon...");
+    main.innerHTML = `
+        <section class="tab-panel active" id="vehicles">
+            <div class="info">Fordon delas upp i två nivåer: kommunen som geografiskt område hämtas från SCB/Trafikanalys, medan kommunorganisationens egen fordonsflotta hämtas från Kolada.</div>
+            <div class="vehicle-split">
+                <div class="vehicle-block">
+                    <article class="comparison">
+                        <span class="vehicle-badge">Kommunen som geografiskt område</span>
+                        <h2>Fordon i kommunen</h2>
+                        <div class="meta">Avser fordon registrerade i kommunen, inte kommunens egen fordonsflotta.</div>
+                        <div class="vehicle-card-grid" id="vehicle-geo-cards">
+                            ${vehicleNumberCardSkeleton("vehicle-total", "Fordon i trafik totalt", "SCB/Trafikanalys")}
+                            ${vehicleNumberCardSkeleton("vehicle-cars", "Personbilar i trafik", "SCB/Trafikanalys")}
+                            ${vehicleNumberCardSkeleton("vehicle-cars-per-1000", "Personbilar per 1 000 invånare", "SCB/Trafikanalys + Kolada")}
+                            ${vehicleGeoKoladaMetrics.map(item => cardSkeleton(item)).join("")}
+                        </div>
+                    </article>
+                    <article class="comparison">
+                        <div class="comparison-head">
+                            <div>
+                                <h2 class="comparison-title">Jämförelse fordonsbestånd</h2>
+                                <div class="meta">SCB/Trafikanalys, fordon i trafik efter kommun och fordonsslag.</div>
+                            </div>
+                            <div class="field metric-picker">
+                                <label for="vehicle-type-select">Fordonsslag</label>
+                                <select id="vehicle-type-select">
+                                    ${vehicleTrafficTypes.map(item => `<option value="${item.id}">${item.title}</option>`).join("")}
+                                </select>
+                            </div>
+                            <div></div>
+                            <div class="selected-metric-title" id="vehicle-selected-title">Fordon i trafik totalt</div>
+                        </div>
+                        <div class="chart-wrap"><canvas id="vehicle-chart" width="1100" height="320"></canvas></div>
+                        <div class="legend" id="vehicle-legend"></div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Område</th>
+                                    <th>Senaste värde</th>
+                                    <th>Senaste period</th>
+                                    <th>Förändring från föregående mätperiod</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicle-table"><tr><td colspan="4">Laddar...</td></tr></tbody>
+                        </table>
+                    </article>
+                </div>
+                <div class="vehicle-block">
+                    <article class="comparison">
+                        <span class="vehicle-badge org">Kommunorganisationen</span>
+                        <h2>Kommunorganisationens fordonsandelar</h2>
+                        <div class="vehicle-note">Kolada visar andelar för kommunorganisationens fordon. Antal fordon saknas i Kolada och visas därför inte här. Det är alltså kommunens egna eller leasade fordon där kommunen rapporterar in uppgift, inte alla fordon som finns i kommunen.</div>
+                        <div class="vehicle-card-grid compact" id="vehicle-org-cards">
+                            ${vehicleOrganizationMetrics.map(item => cardSkeleton(item)).join("")}
+                        </div>
+                    </article>
+                    <article class="comparison">
+                        <span class="vehicle-badge org">Tolkning</span>
+                        <h2>Så ska fliken läsas</h2>
+                        <table class="vehicle-type-table">
+                            <tbody>
+                                <tr><td>Kommunen som geografiskt område</td><td>Alla registrerade fordon i kommunen, oavsett ägare.</td></tr>
+                                <tr><td>Kommunorganisationen</td><td>Andelar för kommunens egna verksamhetsfordon enligt Kolada. Inte antal fordon.</td></tr>
+                                <tr><td>Laddinfrastruktur</td><td>Laddpunkter i kommunen som geografiskt område.</td></tr>
+                            </tbody>
+                        </table>
+                    </article>
+                </div>
+            </div>
+        </section>`;
+
+    try {
+        const populationMetric = metric("N01951", "Invånare totalt", "Befolkning", "number", "sum");
+        const traffic = await loadVehicleTrafficData();
+        renderVehicleGeoCards(traffic, null);
+        renderVehicleComparison(traffic, "total");
+        const select = document.getElementById("vehicle-type-select");
+        select.addEventListener("change", () => renderVehicleComparison(traffic, select.value));
+        setStatus(`Fordon laddat: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
+
+        try {
+            const populationBundle = await withTimeout(loadMetricBundle(populationMetric), 10000, "Befolkning");
+            renderVehicleGeoCards(traffic, populationBundle);
+        } catch (error) {
+            console.warn("Kunde inte ladda befolkning för fordon per 1 000 invånare", error);
+        }
+
+        const koladaMetrics = [...vehicleGeoKoladaMetrics, ...vehicleOrganizationMetrics];
+        const koladaResults = await Promise.allSettled(koladaMetrics.map(item => withTimeout(loadMetricBundle(item), 10000, item.id)));
+        koladaResults.forEach((result, index) => {
+            const item = koladaMetrics[index];
+            if (result.status === "fulfilled") {
+                renderCard("vehicles", result.value);
+            } else {
+                renderUnavailableCard("vehicles", item, "Kolada kunde inte laddas.");
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        main.querySelector("#vehicle-table").innerHTML = `<tr><td colspan="4" class="error">Kunde inte ladda fordonsdata från SCB/Trafikanalys.</td></tr>`;
+        main.querySelectorAll("#vehicle-geo-cards .value, #vehicle-org-cards .value").forEach(item => item.textContent = "Ingen data");
+        setStatus("Kunde inte ladda fordon");
+    }
+}
+
+function vehicleNumberCardSkeleton(id, title, source) {
+    return `
+        <article class="card" id="${id}-card">
+            <h3>${escapeHtml(title)}</h3>
+            <div class="meta">${escapeHtml(source)}</div>
+            <div class="value">Laddar...</div>
+            <div class="meta delta"></div>
+            <div class="compare-line">
+                <div class="mini"><div class="mini-label">Höglandet</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Jönköpings län</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Riket</div><div class="mini-value">-</div></div>
+            </div>
+        </article>`;
+}
+
+function renderUnavailableCard(tabId, item, message) {
+    const card = document.querySelector(`#${tabId} #card-${item.id}`);
+    if (!card) return;
+    card.querySelector(".value").textContent = "Ingen data";
+    card.querySelector(".delta").textContent = message;
+    card.querySelector(".delta").className = "meta delta bad";
+}
+
+function withTimeout(promise, milliseconds, label) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => window.setTimeout(() => reject(new Error(`${label} tog för lång tid att ladda`)), milliseconds))
+    ]);
+}
+
+async function loadVehicleTrafficData() {
+    if (vehicleTrafficCache) return vehicleTrafficCache;
+    if (embeddedVehicleTrafficData) {
+        vehicleTrafficCache = embeddedVehicleTrafficData;
+        return vehicleTrafficCache;
+    }
+    const scbRegions = [...countyMunicipalityIds, "06", "00"];
+    const response = await fetch(`${SCB_VEHICLE_API_BASE}/FordonTrafik`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            query: [
+                { code: "Region", selection: { filter: "item", values: scbRegions } },
+                { code: "Fordonsslag", selection: { filter: "item", values: vehicleTrafficTypes.filter(item => item.id !== "total").map(item => item.id) } },
+                { code: "Tid", selection: { filter: "item", values: ["2024", "2025"] } }
+            ],
+            response: { format: "JSON" }
+        })
+    });
+    if (!response.ok) throw new Error(`SCB FordonTrafik svarade ${response.status}`);
+    const json = await response.json();
+    const regions = {};
+    (json.data || []).forEach(row => {
+        const [scbRegion, typeId, year] = row.key || [];
+        const regionId = scbRegion === "06" ? countyId : scbRegion === "00" ? countryId : scbRegion;
+        const value = Number(String(row.values?.[0] || "").replace(/\s/g, ""));
+        if (!regionId || !typeId || !year || !Number.isFinite(value)) return;
+        regions[regionId] ??= {};
+        regions[regionId][year] ??= {};
+        regions[regionId][year][typeId] = value;
+    });
+    vehicleTrafficCache = {
+        source: "SCB/Trafikanalys Fordon i trafik efter län och kommun samt fordonsslag",
+        latestYear: "2025",
+        previousYear: "2024",
+        updated: "2026-02-12",
+        regions
+    };
+    return vehicleTrafficCache;
+}
+
+function renderVehicleGeoCards(traffic, populationBundle) {
+    const selected = currentMunicipality();
+    const year = traffic.latestYear;
+    const previousYear = traffic.previousYear;
+    const population = populationBundle?.byId?.[selected.id]?.latest;
+    updateVehicleNumberCard(
+        "vehicle-total",
+        vehicleTrafficValue(traffic, selected.id, "total", year),
+        vehicleTrafficValue(traffic, selected.id, "total", previousYear),
+        year,
+        previousYear,
+        vehicleTrafficValue(traffic, "highland", "total", year),
+        vehicleTrafficValue(traffic, countyId, "total", year),
+        vehicleTrafficValue(traffic, countryId, "total", year),
+        "Avser alla fordonsslag i trafik"
+    );
+    updateVehicleNumberCard(
+        "vehicle-cars",
+        vehicleTrafficValue(traffic, selected.id, "10", year),
+        vehicleTrafficValue(traffic, selected.id, "10", previousYear),
+        year,
+        previousYear,
+        vehicleTrafficValue(traffic, "highland", "10", year),
+        vehicleTrafficValue(traffic, countyId, "10", year),
+        vehicleTrafficValue(traffic, countryId, "10", year),
+        "Avser personbilar i trafik"
+    );
+
+    const cars = vehicleTrafficValue(traffic, selected.id, "10", year);
+    const highlandCars = vehicleTrafficValue(traffic, "highland", "10", year);
+    const countyCars = vehicleTrafficValue(traffic, countyId, "10", year);
+    const countryCars = vehicleTrafficValue(traffic, countryId, "10", year);
+    const carsPer1000 = Number.isFinite(cars) && population?.value ? (cars / population.value) * 1000 : null;
+    const highlandPopulation = populationBundle?.highland?.latest?.value;
+    const countyPopulation = populationBundle?.county?.latest?.value;
+    const countryPopulation = populationBundle?.byId?.[countryId]?.latest?.value;
+    updateVehicleNumberCard(
+        "vehicle-cars-per-1000",
+        carsPer1000,
+        null,
+        year,
+        null,
+        Number.isFinite(highlandCars) && highlandPopulation ? (highlandCars / highlandPopulation) * 1000 : null,
+        Number.isFinite(countyCars) && countyPopulation ? (countyCars / countyPopulation) * 1000 : null,
+        Number.isFinite(countryCars) && countryPopulation ? (countryCars / countryPopulation) * 1000 : null,
+        `Befolkning från Kolada ${formatMetricPeriod(population?.period, { afMonthlyKey: false })}`,
+        { decimals: 0, suffix: " /1000 inv" }
+    );
+}
+
+function updateVehicleNumberCard(id, value, previous, year, previousYear, highlandValue, countyValue, countryValue, meta, options = {}) {
+    const card = document.getElementById(`${id}-card`);
+    if (!card) return;
+    const format = (item) => Number.isFinite(item)
+        ? `${item.toLocaleString("sv-SE", { maximumFractionDigits: options.decimals ?? 0 })}${options.suffix || ""}`
+        : "-";
+    card.querySelector(".value").textContent = format(value);
+    const delta = Number.isFinite(value) && Number.isFinite(previous) ? value - previous : null;
+    const deltaEl = card.querySelector(".delta");
+    deltaEl.textContent = delta === null
+        ? `${meta} · mätår ${year}`
+        : `${formatDelta(delta, { format: "integer", suffix: options.suffix || "" })} från ${previousYear} · mätår ${year}`;
+    deltaEl.className = "meta delta";
+    const minis = card.querySelectorAll(".mini-value");
+    minis[0].textContent = format(highlandValue);
+    minis[1].textContent = format(countyValue);
+    minis[2].textContent = format(countryValue);
+}
+
+function renderVehicleComparison(traffic, typeId) {
+    const type = vehicleTrafficTypes.find(item => item.id === typeId) || vehicleTrafficTypes[0];
+    const rows = vehicleComparisonRows(traffic, type.id);
+    const metricDef = { ...vehicleTrafficMetric, title: type.title };
+    document.getElementById("vehicle-selected-title").textContent = `${type.title} - mätår ${traffic.latestYear}`;
+    drawBarChart(document.getElementById("vehicle-chart"), rows, metricDef);
+    document.getElementById("vehicle-legend").innerHTML = rows
+        .map(row => `<span><i style="background:${row.color}"></i>${escapeHtml(row.title)}</span>`)
+        .join("");
+    document.getElementById("vehicle-table").innerHTML = rows.map(row => {
+        const delta = row.previous && row.latest ? row.latest.value - row.previous.value : null;
+        return `
+            <tr>
+                <td>${escapeHtml(row.title)}</td>
+                <td>${formatMaybe(row.latest?.value, metricDef)}</td>
+                <td>${row.latest?.period || "-"}</td>
+                <td>${delta === null ? "-" : `${formatDelta(delta, metricDef)} från ${row.previous.period}`}</td>
+            </tr>`;
+    }).join("");
+}
+
+function vehicleComparisonRows(traffic, typeId) {
+    const selected = currentMunicipality();
+    const municipalityRows = countyMunicipalityIds
+        .filter(id => id !== selected.id)
+        .map(id => {
+            const municipality = municipalities.find(item => item.id === id);
+            return vehicleRowFor(municipality.name, id, traffic, typeId, colors.other);
+        });
+    return [
+        vehicleRowFor(selected.name, selected.id, traffic, typeId, colors.selected),
+        ...municipalityRows,
+        vehicleRowFor("Höglandet", "highland", traffic, typeId, colors.highland),
+        vehicleRowFor("Jönköpings län", countyId, traffic, typeId, colors.county),
+        vehicleRowFor("Riket", countryId, traffic, typeId, colors.country)
+    ];
+}
+
+function vehicleRowFor(title, regionId, traffic, typeId, color) {
+    const latest = vehicleTrafficValue(traffic, regionId, typeId, traffic.latestYear);
+    const previous = vehicleTrafficValue(traffic, regionId, typeId, traffic.previousYear);
+    return {
+        title,
+        id: regionId,
+        color,
+        latest: Number.isFinite(latest) ? { period: traffic.latestYear, value: latest } : null,
+        previous: Number.isFinite(previous) ? { period: traffic.previousYear, value: previous } : null
+    };
+}
+
+function vehicleTrafficValue(traffic, regionId, typeId, year) {
+    if (regionId === "highland") {
+        const values = highlandIds.map(id => vehicleTrafficValue(traffic, id, typeId, year)).filter(Number.isFinite);
+        return values.length ? values.reduce((sum, item) => sum + item, 0) : null;
+    }
+    const row = traffic.regions?.[regionId]?.[year];
+    if (!row) return null;
+    if (typeId === "total") {
+        const total = Object.values(row).filter(Number.isFinite).reduce((sum, item) => sum + item, 0);
+        return Number.isFinite(total) ? total : null;
+    }
+    const value = row[typeId];
+    return Number.isFinite(value) ? value : null;
 }
 
 async function renderMetricMapTab() {
