@@ -478,6 +478,12 @@
         margin: 12px 0 0;
     }
 
+    .source-top {
+        margin: 6px 0 12px;
+        line-height: 1.55;
+        max-width: 980px;
+    }
+
     .loading {
         color: var(--muted);
         padding: 18px;
@@ -1254,6 +1260,10 @@
 <div class="shell">
     <header>
         <h1>Dashboard Jönköpings län</h1>
+        <div class="source source-top">
+            <strong>Källor:</strong>
+            Kolada · SCB · Migrationsverket · Arbetsförmedlingen · Trafikanalys · Havs- och vattenmyndigheten · Trafikverket · Upphandlingsmyndigheten · Svenskt Näringsliv
+        </div>
         <p>Livehämtade nyckeltal för länets kommuner med jämförelser mot Höglandet, Jönköpings län och riket.</p>
         <div class="selected-municipality">Vald huvudkommun: <span id="current-name">Sävsjö</span></div>
             <div class="header-sweden-map-card" aria-label="Placering i Sverige">
@@ -1591,6 +1601,7 @@
         <button class="tab-btn" type="button" data-tab="work">Arbete och livsvillkor</button>
         <button class="tab-btn" type="button" data-tab="income">Inkomst och hushåll</button>
         <button class="tab-btn" type="button" data-tab="business">Näringsliv och pendling</button>
+        <button class="tab-btn" type="button" data-tab="procurement">Upphandling</button>
         <button class="tab-btn" type="button" data-tab="economy">Ekonomi</button>
         <button class="tab-btn" type="button" data-tab="budgetsimulator">Budgetsimulator</button>
         <button class="tab-btn" type="button" data-tab="school">Skola och kompetens</button>
@@ -1604,7 +1615,7 @@
 
     <main id="main"></main>
 
-    <p class="source">Källa: Kolada API v3, SCB/Trafikanalys fordonsstatistik, Havs- och vattenmyndighetens API för badplatser och badvatten samt Trafikverkets Lastkajen/NetInfo för ATK-kartlager. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
+    <p class="source">Källa: Kolada API v3, SCB, Migrationsverket, Arbetsförmedlingen, Trafikanalys fordonsstatistik, Upphandlingsmyndighetens öppna data om annonserade upphandlingar, Havs- och vattenmyndighetens API för badplatser och badvatten samt Trafikverkets Lastkajen/NetInfo för ATK-kartlager. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
 </div>
 
 <script>
@@ -1654,6 +1665,13 @@ const countyId = "0006";
 const countryId = "0000";
 
 const NATIONAL_POPULATION_MAY_2026 = 10608128;
+const PROCUREMENT_SOURCE = {
+    title: "Upphandlingsmyndigheten, öppna data: Antal anbud och kontrakterat värde. Statistik om annonserade upphandlingar i Sverige",
+    period: "2021-2024",
+    note: "Avser kommunen som upphandlande organisation. Kommunala bolag, regionen och kommunalförbund ingår inte i denna sammanställning."
+};
+const PROCUREMENT_DATA = [{"id":"0604","year":2021,"upphandlingar":3,"anbudsomraden":3,"anbud":4.0,"snittAnbud":1.3,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":4000000,"upphandlingarMedVarde":3},{"id":"0604","year":2022,"upphandlingar":10,"anbudsomraden":10,"anbud":59.0,"snittAnbud":5.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":10.0,"kontrakteratVarde":29054300,"upphandlingarMedVarde":10},{"id":"0604","year":2023,"upphandlingar":7,"anbudsomraden":7,"anbud":37.0,"snittAnbud":5.3,"miljoAndel":14.3,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":11500000,"upphandlingarMedVarde":2},{"id":"0604","year":2024,"upphandlingar":2,"anbudsomraden":2,"anbud":6.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":50.0,"overprovadeAndel":0.0,"kontrakteratVarde":2500000,"upphandlingarMedVarde":1},{"id":"0617","year":2021,"upphandlingar":1,"anbudsomraden":1,"anbud":1.0,"snittAnbud":1.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":58696000,"upphandlingarMedVarde":1},{"id":"0617","year":2024,"upphandlingar":1,"anbudsomraden":1,"anbud":1.0,"snittAnbud":1.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":null,"upphandlingarMedVarde":0},{"id":"0642","year":2021,"upphandlingar":2,"anbudsomraden":2,"anbud":31.0,"snittAnbud":15.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":4900000,"upphandlingarMedVarde":2},{"id":"0642","year":2022,"upphandlingar":7,"anbudsomraden":7,"anbud":19.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":62949727,"upphandlingarMedVarde":7},{"id":"0642","year":2023,"upphandlingar":4,"anbudsomraden":4,"anbud":11.0,"snittAnbud":2.8,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":71200000,"upphandlingarMedVarde":3},{"id":"0642","year":2024,"upphandlingar":6,"anbudsomraden":30,"anbud":237.0,"snittAnbud":9.9,"miljoAndel":3.3,"socialAndel":23.3,"overprovadeAndel":0.0,"kontrakteratVarde":20060000,"upphandlingarMedVarde":3},{"id":"0643","year":2021,"upphandlingar":12,"anbudsomraden":12,"anbud":59.0,"snittAnbud":4.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":197891000,"upphandlingarMedVarde":12},{"id":"0643","year":2022,"upphandlingar":15,"anbudsomraden":15,"anbud":56.0,"snittAnbud":3.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":71200000,"upphandlingarMedVarde":15},{"id":"0643","year":2023,"upphandlingar":12,"anbudsomraden":16,"anbud":88.0,"snittAnbud":5.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":297200000,"upphandlingarMedVarde":11},{"id":"0643","year":2024,"upphandlingar":5,"anbudsomraden":5,"anbud":16.0,"snittAnbud":3.2,"miljoAndel":40.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":260900000,"upphandlingarMedVarde":4},{"id":"0662","year":2021,"upphandlingar":20,"anbudsomraden":25,"anbud":75.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":441190000,"upphandlingarMedVarde":19},{"id":"0662","year":2022,"upphandlingar":30,"anbudsomraden":56,"anbud":163.0,"snittAnbud":2.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":28.6,"kontrakteratVarde":444061820,"upphandlingarMedVarde":30},{"id":"0662","year":2023,"upphandlingar":28,"anbudsomraden":42,"anbud":124.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":2.4,"kontrakteratVarde":152092132,"upphandlingarMedVarde":26},{"id":"0662","year":2024,"upphandlingar":25,"anbudsomraden":36,"anbud":84.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":2.8,"kontrakteratVarde":436026256,"upphandlingarMedVarde":21},{"id":"0665","year":2021,"upphandlingar":10,"anbudsomraden":18,"anbud":66.0,"snittAnbud":3.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":11.1,"kontrakteratVarde":193300000,"upphandlingarMedVarde":10},{"id":"0665","year":2022,"upphandlingar":10,"anbudsomraden":42,"anbud":739.0,"snittAnbud":17.6,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":163600000,"upphandlingarMedVarde":9},{"id":"0665","year":2023,"upphandlingar":14,"anbudsomraden":14,"anbud":43.0,"snittAnbud":3.1,"miljoAndel":14.3,"socialAndel":7.1,"overprovadeAndel":0.0,"kontrakteratVarde":59530000,"upphandlingarMedVarde":14},{"id":"0665","year":2024,"upphandlingar":13,"anbudsomraden":20,"anbud":100.0,"snittAnbud":5.3,"miljoAndel":15.0,"socialAndel":10.0,"overprovadeAndel":5.0,"kontrakteratVarde":278614535,"upphandlingarMedVarde":12},{"id":"0680","year":2021,"upphandlingar":68,"anbudsomraden":68,"anbud":288.0,"snittAnbud":4.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.9,"kontrakteratVarde":1726534336,"upphandlingarMedVarde":68},{"id":"0680","year":2022,"upphandlingar":76,"anbudsomraden":76,"anbud":324.0,"snittAnbud":4.3,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.3,"kontrakteratVarde":3025095001,"upphandlingarMedVarde":75},{"id":"0680","year":2023,"upphandlingar":68,"anbudsomraden":75,"anbud":348.0,"snittAnbud":4.6,"miljoAndel":10.7,"socialAndel":1.3,"overprovadeAndel":12.0,"kontrakteratVarde":1288783900,"upphandlingarMedVarde":60},{"id":"0680","year":2024,"upphandlingar":76,"anbudsomraden":118,"anbud":543.0,"snittAnbud":4.6,"miljoAndel":14.4,"socialAndel":4.2,"overprovadeAndel":3.4,"kontrakteratVarde":1377950001,"upphandlingarMedVarde":66},{"id":"0682","year":2021,"upphandlingar":20,"anbudsomraden":24,"anbud":109.0,"snittAnbud":4.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":226693001,"upphandlingarMedVarde":20},{"id":"0682","year":2022,"upphandlingar":18,"anbudsomraden":28,"anbud":222.0,"snittAnbud":7.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":76419131,"upphandlingarMedVarde":18},{"id":"0682","year":2023,"upphandlingar":27,"anbudsomraden":36,"anbud":254.0,"snittAnbud":7.1,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":280709000,"upphandlingarMedVarde":23},{"id":"0682","year":2024,"upphandlingar":24,"anbudsomraden":25,"anbud":68.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":4.0,"kontrakteratVarde":243924000,"upphandlingarMedVarde":17},{"id":"0683","year":2021,"upphandlingar":49,"anbudsomraden":78,"anbud":238.0,"snittAnbud":3.1,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":3.8,"kontrakteratVarde":302618000,"upphandlingarMedVarde":47},{"id":"0683","year":2022,"upphandlingar":44,"anbudsomraden":93,"anbud":546.0,"snittAnbud":5.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":1.1,"kontrakteratVarde":715800000,"upphandlingarMedVarde":44},{"id":"0683","year":2023,"upphandlingar":40,"anbudsomraden":58,"anbud":321.0,"snittAnbud":5.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":10.3,"kontrakteratVarde":262400000,"upphandlingarMedVarde":39},{"id":"0683","year":2024,"upphandlingar":41,"anbudsomraden":62,"anbud":178.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":17.7,"kontrakteratVarde":372023774,"upphandlingarMedVarde":36},{"id":"0684","year":2021,"upphandlingar":11,"anbudsomraden":11,"anbud":55.0,"snittAnbud":5.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":137252000,"upphandlingarMedVarde":11},{"id":"0684","year":2022,"upphandlingar":15,"anbudsomraden":15,"anbud":47.0,"snittAnbud":3.1,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":170536600,"upphandlingarMedVarde":15},{"id":"0684","year":2023,"upphandlingar":7,"anbudsomraden":7,"anbud":21.0,"snittAnbud":3.0,"miljoAndel":14.3,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":16630040,"upphandlingarMedVarde":6},{"id":"0684","year":2024,"upphandlingar":20,"anbudsomraden":24,"anbud":70.0,"snittAnbud":2.9,"miljoAndel":25.0,"socialAndel":12.5,"overprovadeAndel":0.0,"kontrakteratVarde":117650000,"upphandlingarMedVarde":12},{"id":"0685","year":2021,"upphandlingar":27,"anbudsomraden":33,"anbud":164.0,"snittAnbud":5.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":3.0,"kontrakteratVarde":344610000,"upphandlingarMedVarde":27},{"id":"0685","year":2022,"upphandlingar":28,"anbudsomraden":32,"anbud":125.0,"snittAnbud":3.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":3.1,"kontrakteratVarde":169760000,"upphandlingarMedVarde":26},{"id":"0685","year":2023,"upphandlingar":19,"anbudsomraden":27,"anbud":162.0,"snittAnbud":6.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":7.4,"kontrakteratVarde":101360000,"upphandlingarMedVarde":18},{"id":"0685","year":2024,"upphandlingar":17,"anbudsomraden":19,"anbud":51.0,"snittAnbud":3.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.3,"kontrakteratVarde":230771005,"upphandlingarMedVarde":14},{"id":"0686","year":2021,"upphandlingar":19,"anbudsomraden":21,"anbud":126.0,"snittAnbud":6.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":201788715,"upphandlingarMedVarde":19},{"id":"0686","year":2022,"upphandlingar":24,"anbudsomraden":24,"anbud":126.0,"snittAnbud":5.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":4.2,"kontrakteratVarde":257976700,"upphandlingarMedVarde":24},{"id":"0686","year":2023,"upphandlingar":13,"anbudsomraden":17,"anbud":59.0,"snittAnbud":3.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":49894928,"upphandlingarMedVarde":10},{"id":"0686","year":2024,"upphandlingar":11,"anbudsomraden":16,"anbud":43.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":6.2,"overprovadeAndel":0.0,"kontrakteratVarde":96995545,"upphandlingarMedVarde":7},{"id":"0687","year":2021,"upphandlingar":22,"anbudsomraden":22,"anbud":54.0,"snittAnbud":2.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":82167260,"upphandlingarMedVarde":22},{"id":"0687","year":2022,"upphandlingar":20,"anbudsomraden":20,"anbud":39.0,"snittAnbud":1.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.0,"kontrakteratVarde":21489477,"upphandlingarMedVarde":20},{"id":"0687","year":2023,"upphandlingar":10,"anbudsomraden":10,"anbud":24.0,"snittAnbud":2.4,"miljoAndel":10.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":103140887,"upphandlingarMedVarde":8},{"id":"0687","year":2024,"upphandlingar":24,"anbudsomraden":26,"anbud":80.0,"snittAnbud":3.2,"miljoAndel":46.2,"socialAndel":0.0,"overprovadeAndel":3.8,"kontrakteratVarde":63860414,"upphandlingarMedVarde":22}];
+const PROCUREMENT_BUSINESS_RANKING = [{"id":"0604","ranking2025":131,"ranking2026":226},{"id":"0686","ranking2025":71,"ranking2026":100},{"id":"0682","ranking2025":180,"ranking2026":85},{"id":"0684","ranking2025":162,"ranking2026":208},{"id":"0687","ranking2025":50,"ranking2026":128},{"id":"0685","ranking2025":63,"ranking2026":52},{"id":"0617","ranking2025":125,"ranking2026":240},{"id":"0642","ranking2025":59,"ranking2026":142},{"id":"0643","ranking2025":54,"ranking2026":30},{"id":"0662","ranking2025":248,"ranking2026":273},{"id":"0665","ranking2025":36,"ranking2026":37},{"id":"0680","ranking2025":113,"ranking2026":175},{"id":"0683","ranking2025":112,"ranking2026":167}];
 
 const municipalityCoordinates = {
     "0604": [57.837, 14.812],
@@ -2069,6 +2087,285 @@ function activeTabId() {
     return document.querySelector(".tab-btn.active")?.dataset.tab || "overview";
 }
 
+function renderProcurementTab() {
+    const main = document.getElementById("main");
+    const latestYear = Math.max(...PROCUREMENT_DATA.map(row => row.year));
+    const selected = currentMunicipality();
+    const selectedLatest = procurementRow(selected.id, latestYear);
+    const previous = procurementRow(selected.id, latestYear - 1);
+    const countyLatest = procurementAggregate(countyMunicipalityIds, latestYear);
+    const highlandLatest = procurementAggregate(highlandIds, latestYear);
+    const selectedBusinessRank = procurementBusinessRank(selected.id);
+    const latestRows = countyMunicipalityIds
+        .map(id => procurementRow(id, latestYear))
+        .filter(Boolean)
+        .sort((a, b) => b.upphandlingar - a.upphandlingar);
+    const selectedTrend = PROCUREMENT_DATA
+        .filter(row => row.id === selected.id)
+        .sort((a, b) => a.year - b.year);
+
+    setStatus("Visar upphandlingsstatistik.");
+    main.innerHTML = `
+        <section class="tab-panel active" id="procurement">
+            <div class="info">Annonserade upphandlingar och anbud för kommunerna i länet. ${PROCUREMENT_SOURCE.note}</div>
+            <div class="kpi-grid">
+                ${procurementCard("Upphandlingar", formatInteger(selectedLatest?.upphandlingar), procurementDelta(selectedLatest?.upphandlingar, previous?.upphandlingar, "från föregående år"))}
+                ${procurementCard("Kontrakterat värde", procurementMoney(selectedLatest?.kontrakteratVarde), `${formatInteger(selectedLatest?.upphandlingarMedVarde)} upphandlingar med värde ${latestYear}`)}
+                ${procurementCard("Företagsklimat upphandling", procurementRankingValue(selectedBusinessRank), procurementRankingDelta(selectedBusinessRank))}
+                ${procurementCard("Anbudsområden", formatInteger(selectedLatest?.anbudsomraden), `${formatInteger(selectedLatest?.anbud)} anbud totalt ${latestYear}`)}
+                ${procurementCard("Snitt anbud", procurementNumber(selectedLatest?.snittAnbud), "per anbudsområde med anbud")}
+                ${procurementCard("Överprövade", procurementPercent(selectedLatest?.overprovadeAndel), "andel av anbudsområden")}
+            </div>
+            <article class="comparison">
+                <h2 class="comparison-title">Offentliga affärer ${latestYear}</h2>
+                <div class="meta">Vald kommun jämförs med Höglandet, Jönköpings län och övriga kommuner i länet.</div>
+                <div class="chart-wrap"><canvas id="procurement-chart" width="1100" height="320"></canvas></div>
+                <div class="legend">
+                    <span><i style="background:${colors.selected}"></i>${escapeHtml(selected.name)}</span>
+                    <span><i style="background:${colors.highland}"></i>Höglandet</span>
+                    <span><i style="background:${colors.county}"></i>Jönköpings län</span>
+                    <span><i style="background:${colors.other}"></i>Övriga kommuner</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kommun</th>
+                            <th>Upphandlingar</th>
+                            <th>Kontrakterat värde</th>
+                            <th>Anbudsområden</th>
+                            <th>Anbud totalt</th>
+                            <th>Snitt anbud</th>
+                            <th>Företagsklimat 2026</th>
+                            <th>Miljökrav</th>
+                            <th>Social hänsyn</th>
+                            <th>Överprövad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${latestRows.map(row => procurementTableRow(row, row.id === selected.id)).join("")}
+                        ${procurementSummaryRow("Höglandet", highlandLatest, "highland")}
+                        ${procurementSummaryRow("Jönköpings län", countyLatest, "county")}
+                    </tbody>
+                </table>
+            </article>
+            <article class="comparison">
+                <h2 class="comparison-title">${escapeHtml(selected.name)} över tid</h2>
+                <div class="chart-wrap"><canvas id="procurement-trend-chart" width="1100" height="260"></canvas></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>År</th>
+                            <th>Upphandlingar</th>
+                            <th>Kontrakterat värde</th>
+                            <th>Anbudsområden</th>
+                            <th>Anbud totalt</th>
+                            <th>Snitt anbud</th>
+                            <th>Överprövad</th>
+                        </tr>
+                    </thead>
+                    <tbody>${selectedTrend.map(row => procurementYearRow(row)).join("")}</tbody>
+                </table>
+            </article>
+            <div class="source">Uppgifter: ${escapeHtml(PROCUREMENT_SOURCE.title)} samt Svenskt Näringsliv/Lokalt företagsklimat: Kommunens upphandling 2026. Bearbetning i dashboarden. Upphandlingsmyndigheten period: ${PROCUREMENT_SOURCE.period}. Hämtad och inbakad 2026-08-13.</div>
+        </section>`;
+    drawProcurementBarChart(document.getElementById("procurement-chart"), latestRows, selected.id, "upphandlingar");
+    drawProcurementTrendChart(document.getElementById("procurement-trend-chart"), selectedTrend);
+}
+
+function procurementRow(id, year) {
+    return PROCUREMENT_DATA.find(row => row.id === id && row.year === year) || null;
+}
+
+function procurementAggregate(ids, year) {
+    const rows = ids.map(id => procurementRow(id, year)).filter(Boolean);
+    const anbudsomraden = rows.reduce((sum, row) => sum + row.anbudsomraden, 0);
+    const anbud = rows.reduce((sum, row) => sum + row.anbud, 0);
+    return {
+        id: "",
+        year,
+        upphandlingar: rows.reduce((sum, row) => sum + row.upphandlingar, 0),
+        anbudsomraden,
+        anbud,
+        snittAnbud: anbudsomraden ? anbud / anbudsomraden : null,
+        kontrakteratVarde: rows.reduce((sum, row) => sum + (Number.isFinite(row.kontrakteratVarde) ? row.kontrakteratVarde : 0), 0),
+        upphandlingarMedVarde: rows.reduce((sum, row) => sum + (row.upphandlingarMedVarde || 0), 0),
+        miljoAndel: procurementWeightedPercent(rows, "miljoAndel"),
+        socialAndel: procurementWeightedPercent(rows, "socialAndel"),
+        overprovadeAndel: procurementWeightedPercent(rows, "overprovadeAndel")
+    };
+}
+
+function procurementWeightedPercent(rows, key) {
+    const denominator = rows.reduce((sum, row) => sum + row.anbudsomraden, 0);
+    if (!denominator) return null;
+    return rows.reduce((sum, row) => sum + (row[key] || 0) * row.anbudsomraden, 0) / denominator;
+}
+
+function procurementCard(label, value, meta) {
+    return `
+        <article class="card">
+            <div class="label">${label}</div>
+            <div class="value">${value || "-"}</div>
+            <div class="meta delta">${meta || ""}</div>
+            <div class="mini-row"><span>Senaste år</span><strong>2024</strong></div>
+        </article>`;
+}
+
+function procurementTableRow(row, selected) {
+    const municipality = municipalities.find(item => item.id === row.id);
+    const ranking = procurementBusinessRank(row.id);
+    return `
+        <tr class="${selected ? "selected-row" : ""}">
+            <td>${escapeHtml(municipality?.name || row.id)}</td>
+            <td>${formatInteger(row.upphandlingar)}</td>
+            <td>${procurementMoney(row.kontrakteratVarde)}</td>
+            <td>${formatInteger(row.anbudsomraden)}</td>
+            <td>${formatInteger(row.anbud)}</td>
+            <td>${procurementNumber(row.snittAnbud)}</td>
+            <td>${procurementRankingValue(ranking)}</td>
+            <td>${procurementPercent(row.miljoAndel)}</td>
+            <td>${procurementPercent(row.socialAndel)}</td>
+            <td>${procurementPercent(row.overprovadeAndel)}</td>
+        </tr>`;
+}
+
+function procurementSummaryRow(label, row, type) {
+    const ids = type === "county" ? countyMunicipalityIds : highlandIds;
+    const ranking = procurementRankingAverage(ids);
+    return `
+        <tr class="${type === "county" ? "county-row" : ""}">
+            <td><strong>${label}</strong></td>
+            <td><strong>${formatInteger(row.upphandlingar)}</strong></td>
+            <td><strong>${procurementMoney(row.kontrakteratVarde)}</strong></td>
+            <td><strong>${formatInteger(row.anbudsomraden)}</strong></td>
+            <td><strong>${formatInteger(row.anbud)}</strong></td>
+            <td><strong>${procurementNumber(row.snittAnbud)}</strong></td>
+            <td><strong>${procurementRankingAverageValue(ranking)}</strong></td>
+            <td><strong>${procurementPercent(row.miljoAndel)}</strong></td>
+            <td><strong>${procurementPercent(row.socialAndel)}</strong></td>
+            <td><strong>${procurementPercent(row.overprovadeAndel)}</strong></td>
+        </tr>`;
+}
+
+function procurementYearRow(row) {
+    return `
+        <tr>
+            <td>${row.year}</td>
+            <td>${formatInteger(row.upphandlingar)}</td>
+            <td>${procurementMoney(row.kontrakteratVarde)}</td>
+            <td>${formatInteger(row.anbudsomraden)}</td>
+            <td>${formatInteger(row.anbud)}</td>
+            <td>${procurementNumber(row.snittAnbud)}</td>
+            <td>${procurementPercent(row.overprovadeAndel)}</td>
+        </tr>`;
+}
+
+function procurementDelta(current, previous, suffix) {
+    if (!Number.isFinite(current) || !Number.isFinite(previous)) return suffix || "";
+    const delta = current - previous;
+    return `${delta > 0 ? "+" : ""}${formatInteger(delta)} ${suffix}`;
+}
+
+function procurementNumber(value) {
+    return Number.isFinite(value) ? value.toLocaleString("sv-SE", { maximumFractionDigits: 1 }) : "-";
+}
+
+function procurementPercent(value) {
+    return Number.isFinite(value) ? `${value.toLocaleString("sv-SE", { maximumFractionDigits: 1 })} %` : "-";
+}
+
+function procurementMoney(value) {
+    if (!Number.isFinite(value)) return "-";
+    return `${(value / 1000000).toLocaleString("sv-SE", { maximumFractionDigits: 1 })} mnkr`;
+}
+
+function procurementBusinessRank(id) {
+    return PROCUREMENT_BUSINESS_RANKING.find(row => row.id === id) || null;
+}
+
+function procurementRankingValue(row) {
+    return row ? `${row.ranking2026}/290` : "-";
+}
+
+function procurementRankingDelta(row) {
+    if (!row) return "Svenskt Näringsliv 2026";
+    const diff = row.ranking2025 - row.ranking2026;
+    if (diff === 0) return `oförändrat från 2025`;
+    return diff > 0 ? `${diff} placeringar bättre än 2025` : `${Math.abs(diff)} placeringar sämre än 2025`;
+}
+
+function procurementRankingAverage(ids) {
+    const values = ids
+        .map(id => procurementBusinessRank(id)?.ranking2026)
+        .filter(Number.isFinite);
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+}
+
+function procurementRankingAverageValue(value) {
+    return Number.isFinite(value) ? `${value.toLocaleString("sv-SE", { maximumFractionDigits: 0 })}/290 snitt` : "-";
+}
+
+function drawProcurementBarChart(canvas, rows, selectedId, key) {
+    if (!canvas) return;
+    const chartRows = rows.map(row => ({
+        title: municipalities.find(item => item.id === row.id)?.name || row.id,
+        value: row[key],
+        color: row.id === selectedId ? colors.selected : colors.other
+    }));
+    drawSimpleBars(canvas, chartRows);
+}
+
+function drawProcurementTrendChart(canvas, rows) {
+    if (!canvas) return;
+    drawSimpleBars(canvas, rows.map(row => ({
+        title: String(row.year),
+        value: row.upphandlingar,
+        color: colors.selected
+    })));
+}
+
+function drawSimpleBars(canvas, rows) {
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    const width = Math.max(760, Math.round(rect.width || canvas.clientWidth || 1100));
+    const height = Math.max(240, Math.round(rect.height || canvas.clientHeight || 320));
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    ctx.font = "13px Arial";
+    ctx.fillStyle = "#475467";
+    const left = 60;
+    const right = 22;
+    const bottom = 52;
+    const top = 20;
+    const max = Math.max(...rows.map(row => row.value || 0), 1);
+    const gap = 8;
+    const barWidth = Math.max(16, (width - left - right - gap * (rows.length - 1)) / rows.length);
+    rows.forEach((row, index) => {
+        const x = left + index * (barWidth + gap);
+        const h = Math.round((height - top - bottom) * (row.value || 0) / max);
+        const y = height - bottom - h;
+        ctx.fillStyle = row.color;
+        ctx.fillRect(x, y, barWidth, h);
+        ctx.fillStyle = "#101828";
+        ctx.textAlign = "center";
+        ctx.fillText(formatInteger(row.value), x + barWidth / 2, Math.max(14, y - 6));
+        ctx.save();
+        ctx.translate(x + barWidth / 2, height - bottom + 12);
+        ctx.rotate(-Math.PI / 5);
+        ctx.fillStyle = "#475467";
+        ctx.fillText(row.title, 0, 0);
+        ctx.restore();
+    });
+    ctx.strokeStyle = "#d0d5dd";
+    ctx.beginPath();
+    ctx.moveTo(left, height - bottom);
+    ctx.lineTo(width - right, height - bottom);
+    ctx.stroke();
+}
+
 async function renderActiveTab(tabId = activeTabId()) {
     if (tabId === "vehicles") {
         await renderVehiclesTab();
@@ -2084,6 +2381,10 @@ async function renderActiveTab(tabId = activeTabId()) {
     }
     if (tabId === "budgetsimulator") {
         await renderBudgetSimulatorTab();
+        return;
+    }
+    if (tabId === "procurement") {
+        await renderProcurementTab();
         return;
     }
 
