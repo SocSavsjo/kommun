@@ -1263,7 +1263,7 @@
         <h1>Dashboard Jönköpings län</h1>
         <div class="source source-top">
             <strong>Källor:</strong>
-            Kolada · SCB · Migrationsverket · Arbetsförmedlingen · Trafikanalys · Havs- och vattenmyndigheten · Trafikverket · Upphandlingsmyndigheten · Svenskt Näringsliv
+            Kolada · SCB · Nationella emissionsdatabasen · Migrationsverket · Arbetsförmedlingen · Trafikanalys · Havs- och vattenmyndigheten · Trafikverket · Jordbruksverket · Ekomatcentrum · Upphandlingsmyndigheten · Svenskt Näringsliv
         </div>
         <p>Livehämtade nyckeltal för länets kommuner med jämförelser mot Höglandet, Jönköpings län och riket.</p>
         <div class="selected-municipality">Vald huvudkommun: <span id="current-name">Sävsjö</span></div>
@@ -1616,7 +1616,7 @@
 
     <main id="main"></main>
 
-    <p class="source">Källa: Kolada API v3, SCB, Migrationsverket, Arbetsförmedlingen, Trafikanalys fordonsstatistik, Upphandlingsmyndighetens öppna data om annonserade upphandlingar, Havs- och vattenmyndighetens API för badplatser och badvatten samt Trafikverkets Lastkajen/NetInfo för ATK-kartlager. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
+    <p class="source">Källa: Kolada API v3, SCB, Nationella emissionsdatabasen, Migrationsverket, Arbetsförmedlingen, Trafikanalys fordonsstatistik, Jordbruksverket, Ekomatcentrum, Upphandlingsmyndighetens öppna data om annonserade upphandlingar, Havs- och vattenmyndighetens API för badplatser och badvatten samt Trafikverkets Lastkajen/NetInfo för ATK-kartlager. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
 </div>
 
 <script>
@@ -1933,8 +1933,13 @@ const sections = {
         metrics: [
             metric("N00401", "Växthusgasutsläpp totalt", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85073", "Växthusgasutsläpp transporter", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85072", "Växthusgasutsläpp egen uppvärmning", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85075", "Växthusgasutsläpp arbetsmaskiner", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85076", "Växthusgasutsläpp el och fjärrvärme", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85078", "Växthusgasutsläpp jordbruk", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85077", "Växthusgasutsläpp industri", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85541", "Växthusgasutsläpp produktanvändning", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85543", "Växthusgasutsläpp avfall och avlopp", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85047", "Kväveoxider totalt", "Utsläpp", "number", "avg", false, " kg/inv"),
             metric("N85048", "PM2.5-partiklar totalt", "Utsläpp", "number", "avg", false, " kg/inv"),
             metric("N45905", "Slutanvändning energi totalt", "Energi", "number", "avg", false, " MWh/inv"),
@@ -1942,6 +1947,8 @@ const sections = {
             metric("N45920", "Slutanvändning energi hushåll", "Energi", "number", "avg", false, " MWh/inv"),
             metric("N45925", "Elproduktion från förnybara energikällor", "Energi", "percent", "avg"),
             metric("N45930", "Fjärrvärmeproduktion från förnybara energikällor", "Energi", "percent", "avg"),
+            metric("U07514", "Ekologiska livsmedel i kommunens verksamhet", "Livsmedel och jordbruk", "percent", "avg"),
+            metric("N00403", "Ekologiskt brukad åkermark", "Livsmedel och jordbruk", "percent", "avg"),
             metric("N85054", "Skyddad natur totalt", "Skyddad natur", "percent", "avg"),
             metric("N85055", "Skyddad natur land", "Skyddad natur", "percent", "avg"),
             metric("N85084", "Medelavstånd till skyddad natur", "Skyddad natur", "number", "avg", false, " km"),
